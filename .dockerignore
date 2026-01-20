@@ -1,0 +1,43 @@
+# Docker ignore patterns for Wine Docker build
+
+# Git files
+.git
+.gitignore
+.gitattributes
+.github
+
+# Documentation
+*.md
+LICENSE
+README*
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+
+# Build artifacts
+dist/
+build/
+*.deb
+*.msi
+*.exe
+
+# Test files
+test/
+tests/

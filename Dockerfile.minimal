@@ -1,0 +1,98 @@
+# Minimal Wine Docker for Build/Dev Environment
+# This Dockerfile is optimized for build/packaging tasks
+# ================================================
+
+ARG BASE_IMAGE=ubuntu:22.04
+FROM ${BASE_IMAGE} AS ubuntu-base
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG WINE_BRANCH=stable
+ARG WINEARCH=win64
+ARG PYTHON_VERSION=3.11.9
+
+# China mirrors support
+ARG USE_CN_MIRRORS=0
+
+# Add i386 architecture
+RUN dpkg --add-architecture i386 && \
+    mkdir -p /etc/apt/keyrings
+
+# Install Wine and essential tools only
+RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
+        sed -i 's|archive.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list && \
+        sed -i 's|security.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list; \
+    fi && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        wget \
+        gnupg \
+        lsb-release && \
+    wget -qO- https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key && \
+    echo "deb [arch=amd64,i386 signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/winehq.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        winehq-${WINE_BRANCH} \
+        gosu \
+        binutils \
+        cabextract \
+        unzip \
+        curl \
+        git && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Minimal fonts (only CJK for build output)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fonts-noto-cjk \
+        fontconfig && \
+    fc-cache -fv && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -s /bin/bash -u 1000 user && \
+    mkdir -p /home/user/.wine && \
+    chown -R user:user /home/user
+
+# Minimal Wine config (no winetricks, no extra components)
+RUN gosu user wine winecfg && \
+    gosu user wineserver -w
+
+# Set working directory
+WORKDIR /workspace
+
+# Environment variables
+ENV LANG=C.UTF-8
+ENV WINEPREFIX=/home/user/.wine
+
+# Metadata
+LABEL org.opencontainers.image.title="Minimal Wine for Build/Dev"
+LABEL org.opencontainers.image.description="Minimal Wine environment optimized for build/packaging tasks"
+LABEL org.opencontainers.image.version="1.0"
+LABEL maintainer="tekintian <tekintian@gmail.com>"
+
+# Entrypoint
+ENTRYPOINT [ "gosu", "user" ]
+CMD [ "bash" ]
+
+
+# Minimal Python variant
+FROM ubuntu-base AS python
+ARG PYTHON_VERSION=3.11.9
+ARG PYTHON_ARCH=-amd64
+ARG USE_CN_MIRRORS=0
+
+ARG PYTHON_MIRROR=https://www.python.org
+RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
+        export PYTHON_MIRROR=https://mirrors.huaweicloud.com/python; \
+    fi && \
+    wget -q ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
+    gosu user wine wineboot --init && \
+    gosu user wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
+    gosu user wineserver -w && \
+    rm /tmp/install-python.exe
+
+CMD [ "wine", "python" ]

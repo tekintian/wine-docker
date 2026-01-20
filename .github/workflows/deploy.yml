@@ -1,0 +1,248 @@
+name: Push to Docker registry
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - created
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  REGISTRY: registry.cn-hangzhou.aliyuncs.com/tekintian/dev
+  IMAGE_NAME: wine
+
+jobs:
+  # Build matrix for stable branch
+  build-stable:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant:
+          - name: latest
+            target: ubuntu-base
+            arch: win64
+            tags: latest ubuntu
+          - name: ubuntu-win32
+            target: ubuntu-base
+            arch: win32
+            tags: ubuntu-win32
+          - name: nvidia
+            target: ubuntu-base
+            arch: win64
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            tags: nvidia
+          - name: nvidia-win32
+            target: ubuntu-base
+            arch: win32
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            tags: nvidia-win32
+          - name: ubuntu-py311
+            target: python
+            arch: win64
+            python_version: 3.11.9
+            tags: ubuntu-py311
+          - name: ubuntu-win32-py311
+            target: python
+            arch: win32
+            python_version: 3.11.9
+            tags: ubuntu-win32-py311
+          - name: nvidia-py311
+            target: python
+            arch: win64
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            python_version: 3.11.9
+            tags: nvidia-py311
+          - name: nvidia-win32-py311
+            target: python
+            arch: win32
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            python_version: 3.11.9
+            tags: nvidia-win32-py311
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Aliyun Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Build ${{ matrix.variant.name }}
+        run: |
+          if [ "${{ matrix.variant.base_image }}" != "" ]; then
+            make build-${{ matrix.variant.tags }} BASE_IMAGE=${{ matrix.variant.base_image }}
+          else
+            make build-${{ matrix.variant.tags }}
+          fi
+
+      - name: Push ${{ matrix.variant.tags }}
+        run: |
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}
+
+      - name: Tag and push with release version
+        if: github.event.release.tag_name != ''
+        run: |
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }} \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
+
+  # Build matrix for development branch
+  build-devel:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant:
+          - name: ubuntu-devel
+            target: ubuntu-base
+            arch: win64
+            wine_branch: devel
+            tags: ubuntu-devel
+          - name: ubuntu-devel-win32
+            target: ubuntu-base
+            arch: win32
+            wine_branch: devel
+            tags: ubuntu-devel-win32
+          - name: nvidia-devel
+            target: ubuntu-base
+            arch: win64
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            wine_branch: devel
+            tags: nvidia-devel
+          - name: nvidia-devel-win32
+            target: ubuntu-base
+            arch: win32
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            wine_branch: devel
+            tags: nvidia-devel-win32
+          - name: ubuntu-devel-py311
+            target: python
+            arch: win64
+            wine_branch: devel
+            python_version: 3.11.9
+            tags: ubuntu-devel-py311
+          - name: ubuntu-devel-win32-py311
+            target: python
+            arch: win32
+            wine_branch: devel
+            python_version: 3.11.9
+            tags: ubuntu-devel-win32-py311
+          - name: nvidia-devel-py311
+            target: python
+            arch: win64
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            wine_branch: devel
+            python_version: 3.11.9
+            tags: nvidia-devel-py311
+          - name: nvidia-devel-win32-py311
+            target: python
+            arch: win32
+            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+            wine_branch: devel
+            python_version: 3.11.9
+            tags: nvidia-devel-win32-py311
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Aliyun Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Build ${{ matrix.variant.name }}
+        run: |
+          make build-${{ matrix.variant.tags }} WINE_BRANCH=${{ matrix.variant.wine_branch }}
+
+      - name: Push ${{ matrix.variant.tags }}
+        run: |
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}
+
+      - name: Tag and push with release version
+        if: github.event.release.tag_name != ''
+        run: |
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }} \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
+
+  # Build with China mirrors (optional)
+  build-cn:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[cn-mirror]') || contains(github.event.head_commit.message, 'build-cn')
+    strategy:
+      matrix:
+        variant:
+          - name: latest-cn
+            target: ubuntu-base
+            tags: latest
+          - name: ubuntu-py311-cn
+            target: python
+            python_version: 3.11.9
+            tags: ubuntu-py311
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Aliyun Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Build ${{ matrix.variant.name }} with China mirrors
+        run: |
+          make build-${{ matrix.variant.tags }} USE_CN_MIRRORS=1
+
+      - name: Push ${{ matrix.variant.tags }}-cn
+        run: |
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }} \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-cn
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-cn
+
+  # Summary job
+  summary:
+    runs-on: ubuntu-latest
+    needs: [build-stable, build-devel]
+    if: always()
+    steps:
+      - name: Build summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All Docker images have been built and pushed to Aliyun Container Registry." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Images" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-py311" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Pull Example" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
