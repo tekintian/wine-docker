@@ -111,18 +111,18 @@ jobs:
             arch: win32
             wine_branch: devel
             tags: ubuntu-devel-win32
-          - name: nvidia-devel
-            target: ubuntu-base
-            arch: win64
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            wine_branch: devel
-            tags: nvidia-devel
-          - name: nvidia-devel-win32
-            target: ubuntu-base
-            arch: win32
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            wine_branch: devel
-            tags: nvidia-devel-win32
+          # - name: nvidia-devel
+          #   target: ubuntu-base
+          #   arch: win64
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   wine_branch: devel
+          #   tags: nvidia-devel
+          # - name: nvidia-devel-win32
+          #   target: ubuntu-base
+          #   arch: win32
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   wine_branch: devel
+          #   tags: nvidia-devel-win32
           - name: ubuntu-devel-py311
             target: python
             arch: win64
@@ -135,20 +135,20 @@ jobs:
             wine_branch: devel
             python_version: 3.11.9
             tags: ubuntu-devel-win32-py311
-          - name: nvidia-devel-py311
-            target: python
-            arch: win64
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            wine_branch: devel
-            python_version: 3.11.9
-            tags: nvidia-devel-py311
-          - name: nvidia-devel-win32-py311
-            target: python
-            arch: win32
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            wine_branch: devel
-            python_version: 3.11.9
-            tags: nvidia-devel-win32-py311
+          # - name: nvidia-devel-py311
+          #   target: python
+          #   arch: win64
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   wine_branch: devel
+          #   python_version: 3.11.9
+          #   tags: nvidia-devel-py311
+          # - name: nvidia-devel-win32-py311
+          #   target: python
+          #   arch: win32
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   wine_branch: devel
+          #   python_version: 3.11.9
+          #   tags: nvidia-devel-win32-py311
       fail-fast: false
 
     steps:
