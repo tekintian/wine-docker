@@ -38,7 +38,6 @@ build-ubuntu-win32:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		.
 
 .PHONY: build-nvidia
@@ -60,7 +59,6 @@ build-nvidia-win32:
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		.
 
 # Stable branch - Python images (3.11)
@@ -82,7 +80,6 @@ build-ubuntu-win32-py311:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
 		.
@@ -107,7 +104,6 @@ build-nvidia-win32-py311:
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
 		.
@@ -131,7 +127,6 @@ build-ubuntu-devel-win32:
 		$(BUILD_ARGS) \
 		--build-arg WINE_BRANCH=devel \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		.
 
 .PHONY: build-nvidia-devel
@@ -153,7 +148,6 @@ build-nvidia-devel-win32:
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINE_BRANCH=devel \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		.
 
 # Development branch - Python images
@@ -175,7 +169,6 @@ build-ubuntu-devel-win32-py311:
 		$(BUILD_ARGS) \
 		--build-arg WINE_BRANCH=devel \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
 		.
@@ -200,7 +193,6 @@ build-nvidia-devel-win32-py311:
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINE_BRANCH=devel \
 		--build-arg WINEARCH=win32 \
-		--build-arg GECKO_ARCH=x86 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
 		.

@@ -79,21 +79,21 @@ jobs:
       - name: Build ${{ matrix.variant.name }}
         run: |
           if [ "${{ matrix.variant.base_image }}" != "" ]; then
-            make build-${{ matrix.variant.tags }} BASE_IMAGE=${{ matrix.variant.base_image }}
+            make build-ubuntu BASE_IMAGE=${{ matrix.variant.base_image }}
           else
-            make build-${{ matrix.variant.tags }}
+            make build-ubuntu
           fi
 
       - name: Push ${{ matrix.variant.tags }}
         run: |
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest
 
       - name: Tag and push with release version
         if: github.event.release.tag_name != ''
         run: |
-          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }} \
-                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-${{ github.event.release.tag_name }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-${{ github.event.release.tag_name }}
 
   # Build matrix for development branch
   build-devel:
@@ -167,18 +167,18 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }}
         run: |
-          make build-${{ matrix.variant.tags }} WINE_BRANCH=${{ matrix.variant.wine_branch }}
+          make build-ubuntu-devel WINE_BRANCH=${{ matrix.variant.wine_branch }}
 
       - name: Push ${{ matrix.variant.tags }}
         run: |
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel
 
       - name: Tag and push with release version
         if: github.event.release.tag_name != ''
         run: |
-          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }} \
-                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-${{ github.event.release.tag_name }}
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel-${{ github.event.release.tag_name }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel-${{ github.event.release.tag_name }}
 
   # Build with China mirrors (optional)
   build-cn:
@@ -212,13 +212,13 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }} with China mirrors
         run: |
-          make build-${{ matrix.variant.tags }} USE_CN_MIRRORS=1
+          make build-cn
 
       - name: Push ${{ matrix.variant.tags }}-cn
         run: |
-          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }} \
-                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-cn
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.tags }}-cn
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-cn
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-cn
 
   # Summary job
   summary:
