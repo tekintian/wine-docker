@@ -69,9 +69,9 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     mkdir -p /tmp/wine-build && \
     cd /tmp/wine-build && \
     echo "Downloading Wine source: ${WINE_SOURCE_VERSION}" && \
-    wget -q https://dl.winehq.org/wine/source/${WINE_SOURCE_MVERSION}/wine-${WINE_SOURCE_VERSION}.tar.xz && \
-    tar -xf wine-${WINE_SOURCE_VERSION}.tar.xz && \
-    cd wine-${WINE_SOURCE_VERSION} && \
+    wget -q "https://dl.winehq.org/wine/source/${WINE_SOURCE_MVERSION}/wine-${WINE_SOURCE_VERSION}.tar.xz" && \
+    tar -xf "wine-${WINE_SOURCE_VERSION}.tar.xz" && \
+    cd "wine-${WINE_SOURCE_VERSION}" && \
     mkdir -p build && \
     cd build && \
     echo "Configuring Wine..." && \
@@ -134,7 +134,7 @@ ARG PYTHON_MIRROR=https://www.python.org
 RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         export PYTHON_MIRROR=https://mirrors.huaweicloud.com/python; \
     fi && \
-    wget -q ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
+    wget -q "${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe" -O /tmp/install-python.exe && \
     gosu user env WINEDEBUG=-all wine wineboot --init && \
     gosu user env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
     gosu user wineserver -w && \
