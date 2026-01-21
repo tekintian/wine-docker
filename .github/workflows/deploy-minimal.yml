@@ -51,7 +51,6 @@ jobs:
             --target ${{ matrix.variant.target }} \
             -t ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg USE_CN_MIRRORS=1 \
             --load \
             .
 
@@ -103,7 +102,6 @@ jobs:
             --target ${{ matrix.variant.target }} \
             -t ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg USE_CN_MIRRORS=1 \
             --build-arg WINE_BRANCH=stable \
             --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
             --load \

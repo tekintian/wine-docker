@@ -78,7 +78,7 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }}
         run: |
-          make ${{ matrix.variant.make_target }}
+          make ${{ matrix.variant.make_target }} USE_CN_MIRRORS=0 USE_CN_MIRRORS=0
 
       - name: Push ${{ matrix.variant.push_tag }}
         run: |
@@ -155,7 +155,7 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }}
         run: |
-          make ${{ matrix.variant.make_target }}
+          make ${{ matrix.variant.make_target }} USE_CN_MIRRORS=0 USE_CN_MIRRORS=0
 
       - name: Push ${{ matrix.variant.push_tag }}
         run: |

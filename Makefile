@@ -39,6 +39,7 @@ build-ubuntu-win32:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
+		--load \
 		.
 
 .PHONY: build-nvidia
@@ -49,6 +50,7 @@ build-nvidia:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
+		--load \
 		.
 
 .PHONY: build-nvidia-win32
@@ -60,6 +62,7 @@ build-nvidia-win32:
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINEARCH=win32 \
+		--load \
 		.
 
 # Stable branch - Python images (3.11)
@@ -71,6 +74,7 @@ build-ubuntu-py311:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		--load \
 		.
 
 .PHONY: build-ubuntu-win32-py311
@@ -83,6 +87,7 @@ build-ubuntu-win32-py311:
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--load \
 		.
 
 .PHONY: build-nvidia-py311
@@ -94,6 +99,7 @@ build-nvidia-py311:
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		--load \
 		.
 
 .PHONY: build-nvidia-win32-py311
@@ -107,6 +113,7 @@ build-nvidia-win32-py311:
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--load \
 		.
 
 # Wine 10 branch - Base images (using historical package)
@@ -119,6 +126,7 @@ build-ubuntu-wine10:
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
+		--load \
 		.
 
 .PHONY: build-ubuntu-wine10-win32
@@ -127,9 +135,11 @@ build-ubuntu-wine10-win32:
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
 		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
+		--load \
 		.
 
 .PHONY: build-nvidia-wine10
@@ -141,6 +151,7 @@ build-nvidia-wine10:
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
+		--load \
 		.
 
 .PHONY: build-nvidia-wine10-win32
@@ -153,6 +164,7 @@ build-nvidia-wine10-win32:
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
+		--load \
 		.
 
 # Wine 10 branch - Python images (using historical package)
@@ -162,9 +174,11 @@ build-ubuntu-wine10-py311:
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
 		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		--load \
 		.
 
 .PHONY: build-ubuntu-wine10-win32-py311
@@ -173,11 +187,13 @@ build-ubuntu-wine10-win32-py311:
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
 		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--load \
 		.
 
 .PHONY: build-nvidia-wine10-py311
@@ -190,6 +206,7 @@ build-nvidia-wine10-py311:
 		--build-arg WINE_BRANCH=stable \
 		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		--load \
 		.
 
 .PHONY: build-nvidia-wine10-win32-py311
@@ -204,6 +221,7 @@ build-nvidia-wine10-win32-py311:
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--load \
 		.
 
 # Run Commands
