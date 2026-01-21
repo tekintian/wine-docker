@@ -69,7 +69,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     mkdir -p /tmp/wine-build && \
     cd /tmp/wine-build && \
     echo "Downloading Wine source: ${WINE_SOURCE_VERSION}" && \
-    wget -q https://dl.winehq.org/wine/source/${WINE_SOURCE_MVERSION}/${WINE_SOURCE_VERSION}.tar.xz && \
+    wget -q https://dl.winehq.org/wine/source/${WINE_SOURCE_MVERSION}/wine-${WINE_SOURCE_VERSION}.tar.xz && \
     tar -xf wine-${WINE_SOURCE_VERSION}.tar.xz && \
     cd wine-${WINE_SOURCE_VERSION} && \
     mkdir -p build && \
