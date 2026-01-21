@@ -73,12 +73,14 @@ RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula selec
 # Create user first, then configure Wine
 RUN useradd -m -s /bin/bash user && \
     mkdir -p /home/user/.cache/winetricks && \
-    chown -R user:user /home/user
+    chown -R user:user /home/user && \
+    chmod -R 755 /home/user
 
 # Configure Wine environment
 ENV DISPLAY=:99
 RUN gosu user wine wineboot -i && \
-    gosu user xvfb-run sh -c 'WINEDEBUG=-all winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w'
+    gosu user xvfb-run sh -c 'WINEDEBUG=-all winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w' && \
+    chown -R user:user /home/user/.wine
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -94,6 +96,12 @@ LABEL maintainer="tekintian <tekintian@gmail.com>"
 
 # Set working directory for user
 WORKDIR /home/user
+RUN chmod -R 755 /home/user
+
+# Add helper script to run wine as user
+RUN echo '#!/bin/bash && \
+    xvfb-run -a gosu user env WINEDEBUG=-all wineserver "$@"' > /usr/local/bin/wineserver && \
+    chmod +x /usr/local/bin/wineserver
 
 ENTRYPOINT [ "gosu", "user" ]
 CMD [ "wine", "notepad" ]
@@ -115,6 +123,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     wget -q --show-progress ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
     gosu user xvfb-run \
         sh -c 'WINEDEBUG=-all wineboot && WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0; wineserver -w' && \
+    chown -R user:user /home/user/.wine && \
     rm /tmp/install-python.exe
 
 CMD [ "wine", "python" ]

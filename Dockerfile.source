@@ -124,7 +124,8 @@ RUN apt-get update && \
 # Create non-root user
 RUN useradd -m -s /bin/bash -u 1000 user && \
     mkdir -p /home/user/.wine && \
-    chown -R user:user /home/user
+    chown -R user:user /home/user && \
+    chmod -R 755 /home/user
 
 # Install xvfb for headless wine operation
 RUN apt-get update && \
@@ -137,14 +138,23 @@ RUN apt-get update && \
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
 RUN xvfb-run -a gosu user env WINEDEBUG=-all wine winecfg && \
-    xvfb-run -a gosu user wineserver -w
+    xvfb-run -a gosu user wineserver -w && \
+    # Ensure .wine directory is owned by user
+    chown -R user:user /home/user/.wine
 
 # Set working directory
 WORKDIR /workspace
+RUN chown -R user:user /workspace
 
 # Environment variables
 ENV LANG=C.UTF-8
 ENV WINEPREFIX=/home/user/.wine
+
+# Add helper script to run wine as user
+RUN echo '#!/bin/bash\nxvfb-run -a gosu user env WINEDEBUG=-all wine "$@"' > /usr/local/bin/wine && \
+    chmod +x /usr/local/bin/wine && \
+    echo '#!/bin/bash\nxvfb-run -a gosu user env WINEDEBUG=-all wineserver "$@"' > /usr/local/bin/wineserver && \
+    chmod +x /usr/local/bin/wineserver
 
 # Metadata
 LABEL org.opencontainers.image.title="Wine from Source"
@@ -171,6 +181,8 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     xvfb-run -a gosu user env WINEDEBUG=-all wine wineboot --init && \
     xvfb-run -a gosu user env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
     xvfb-run -a gosu user wineserver -w && \
-    rm /tmp/install-python.exe
+    rm /tmp/install-python.exe && \
+    # Ensure .wine directory is still owned by user after installation
+    chown -R user:user /home/user/.wine
 
 CMD [ "wine", "python" ]

@@ -63,20 +63,33 @@ RUN apt-get update && \
 # Create non-root user
 RUN useradd -m -s /bin/bash -u 1000 user && \
     mkdir -p /home/user/.wine && \
-    chown -R user:user /home/user
+    chown -R user:user /home/user && \
+    chmod -R 755 /home/user
 
 # Minimal Wine config (no winetricks, no extra components)
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
 RUN gosu user xvfb-run env WINEDEBUG=-all wine winecfg && \
-    gosu user wineserver -w
+    gosu user wineserver -w && \
+    chown -R user:user /home/user/.wine
 
 # Set working directory
 WORKDIR /workspace
+RUN mkdir -p /workspace && \
+    chown -R user:user /workspace && \
+    chmod -R 755 /workspace
 
 # Environment variables
 ENV LANG=C.UTF-8
 ENV WINEPREFIX=/home/user/.wine
+
+# Add helper script to run wine as user
+RUN echo '#!/bin/bash \
+xvfb-run -a gosu user env WINEDEBUG=-all wine "$@"' > /usr/local/bin/wine && \
+    chmod +x /usr/local/bin/wine && \
+    echo '#!/bin/bash \
+xvfb-run -a gosu user env WINEDEBUG=-all wineserver "$@"' > /usr/local/bin/wineserver && \
+    chmod +x /usr/local/bin/wineserver
 
 # Metadata
 LABEL org.opencontainers.image.title="Minimal Wine for Build/Dev"
@@ -103,6 +116,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     gosu user xvfb-run env WINEDEBUG=-all wine wineboot --init && \
     gosu user xvfb-run env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
     gosu user wineserver -w && \
+    chown -R user:user /home/user/.wine && \
     rm /tmp/install-python.exe
 
 CMD [ "wine", "python" ]
