@@ -89,6 +89,7 @@ jobs:
             --build-arg WINE_SOURCE_VERSION=${{ inputs.wine_version }} \
             --build-arg WINE_BRANCH=${{ inputs.wine_branch }} \
             --build-arg PYTHON_VERSION=${{ inputs.python_version }} \
+            --build-arg USE_CN_MIRRORS=0 \
             --load \
             .
 

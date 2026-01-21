@@ -78,7 +78,7 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }}
         run: |
-          make ${{ matrix.variant.make_target }} USE_CN_MIRRORS=0
+          make ${{ matrix.variant.make_target }}
 
       - name: Push ${{ matrix.variant.push_tag }}
         run: |
@@ -124,6 +124,7 @@ jobs:
       - name: Build ${{ matrix.variant.name }} with China mirrors
         run: |
           make ${{ matrix.variant.make_target }} USE_CN_MIRRORS=1
+        if: false
 
       - name: Push ${{ matrix.variant.push_tag }}
         run: |
