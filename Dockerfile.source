@@ -23,6 +23,10 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         sed -i 's|security.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list; \
     fi && \
     apt-get update && \
+    # Fix any broken dependencies and configure dpkg database
+    apt-get install -f -y --no-install-recommends && \
+    dpkg --configure -a && \
+    # Install dependencies in smaller batches to isolate any problematic packages
     apt-get install -y --no-install-recommends \
         ca-certificates \
         wget \
@@ -39,25 +43,29 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         build-essential \
         flex \
         bison \
-        mingw-w64 \
+        mingw-w64 && \
+    # Install audio/video related dependencies
+    apt-get install -y --no-install-recommends \
         libfaudio-dev \
         libfaudio-dev:i386 \
+        libmpg123-dev \
+        libmpg123-dev:i386 \
+        libopenal-dev \
+        libopenal-dev:i386 && \
+    # Install font related dependencies
+    apt-get install -y --no-install-recommends \
         libfontconfig1-dev \
         libfontconfig1-dev:i386 \
         libfreetype6-dev \
-        libfreetype6-dev:i386 \
+        libfreetype6-dev:i386 && \
+    # Install other dependencies, excluding krb5-multidev which may cause issues
+    apt-get install -y --no-install-recommends \
         libglib2.0-dev \
         libglib2.0-dev:i386 \
         libgphoto2-dev \
         libgphoto2-dev:i386 \
         libgsm1-dev \
         libgsm1-dev:i386 \
-        libkrb5-dev \
-        libkrb5-dev:i386 \
-        libmpg123-dev \
-        libmpg123-dev:i386 \
-        libopenal-dev \
-        libopenal-dev:i386 \
         libosmesa6-dev \
         libosmesa6-dev:i386 \
         libpcap0.8-dev \
@@ -92,6 +100,8 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         zlib1g-dev:i386 \
         libldap2-dev \
         libldap2-dev:i386 && \
+    # Try to install krb5 related packages separately, allowing failures
+    apt-get install -y --no-install-recommends libkrb5-dev libkrb5-dev:i386 || true && \
     mkdir -p /tmp/wine-build && \
     cd /tmp/wine-build && \
     echo "Downloading Wine source: ${WINE_SOURCE_VERSION}" && \
