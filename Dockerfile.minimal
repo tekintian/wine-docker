@@ -114,7 +114,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     fi && \
     wget -q ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
     gosu user xvfb-run env WINEDEBUG=-all wine wineboot --init && \
-    gosu user xvfb-run env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
+    gosu user xvfb-run env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=1 TargetDir=C:\\Python311 Include_test=0 && \
     gosu user wineserver -w && \
     chown -R user:user /home/user/.wine && \
     rm /tmp/install-python.exe
