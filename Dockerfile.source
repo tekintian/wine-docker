@@ -41,31 +41,57 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         bison \
         mingw-w64 \
         libfaudio-dev \
+        libfaudio-dev:i386 \
         libfontconfig1-dev \
+        libfontconfig1-dev:i386 \
         libfreetype6-dev \
+        libfreetype6-dev:i386 \
         libglib2.0-dev \
+        libglib2.0-dev:i386 \
         libgphoto2-dev \
+        libgphoto2-dev:i386 \
         libgsm1-dev \
+        libgsm1-dev:i386 \
         libkrb5-dev \
+        libkrb5-dev:i386 \
         libmpg123-dev \
+        libmpg123-dev:i386 \
         libopenal-dev \
+        libopenal-dev:i386 \
         libosmesa6-dev \
+        libosmesa6-dev:i386 \
         libpcap0.8-dev \
+        libpcap0.8-dev:i386 \
         libpulse-dev \
+        libpulse-dev:i386 \
         libsane-dev \
+        libsane-dev:i386 \
         libv4l-dev \
+        libv4l-dev:i386 \
         libx11-dev \
+        libx11-dev:i386 \
         libxcomposite-dev \
+        libxcomposite-dev:i386 \
         libxcursor-dev \
+        libxcursor-dev:i386 \
         libxext-dev \
+        libxext-dev:i386 \
         libxi-dev \
+        libxi-dev:i386 \
         libxinerama-dev \
+        libxinerama-dev:i386 \
         libxrandr-dev \
+        libxrandr-dev:i386 \
         libxrender-dev \
+        libxrender-dev:i386 \
         libxslt1-dev \
+        libxslt1-dev:i386 \
         libxxf86vm-dev \
+        libxxf86vm-dev:i386 \
         zlib1g-dev \
-        libldap2-dev && \
+        zlib1g-dev:i386 \
+        libldap2-dev \
+        libldap2-dev:i386 && \
     mkdir -p /tmp/wine-build && \
     cd /tmp/wine-build && \
     echo "Downloading Wine source: ${WINE_SOURCE_VERSION}" && \
@@ -100,11 +126,18 @@ RUN useradd -m -s /bin/bash -u 1000 user && \
     mkdir -p /home/user/.wine && \
     chown -R user:user /home/user
 
+# Install xvfb for headless wine operation
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        xvfb && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Minimal Wine config (no winetricks, no extra components)
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
-RUN gosu user env WINEDEBUG=-all wine winecfg && \
-    gosu user wineserver -w
+RUN xvfb-run -a gosu user env WINEDEBUG=-all wine winecfg && \
+    xvfb-run -a gosu user wineserver -w
 
 # Set working directory
 WORKDIR /workspace
@@ -135,9 +168,9 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         export PYTHON_MIRROR=https://mirrors.huaweicloud.com/python; \
     fi && \
     wget -q "${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe" -O /tmp/install-python.exe && \
-    gosu user env WINEDEBUG=-all wine wineboot --init && \
-    gosu user env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
-    gosu user wineserver -w && \
+    xvfb-run -a gosu user env WINEDEBUG=-all wine wineboot --init && \
+    xvfb-run -a gosu user env WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
+    xvfb-run -a gosu user wineserver -w && \
     rm /tmp/install-python.exe
 
 CMD [ "wine", "python" ]
