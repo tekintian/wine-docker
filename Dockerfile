@@ -40,6 +40,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         binutils \
         cabextract \
         unzip \
+        xz-utils \
         lsof \
         xvfb \
         winbind \

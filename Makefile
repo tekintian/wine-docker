@@ -25,6 +25,7 @@ build:
 		-t $(REGISTRY):$(IMAGE_NAME)_latest \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--load \
 		.
 
 build-cn: USE_CN_MIRRORS=1
