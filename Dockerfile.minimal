@@ -65,7 +65,8 @@ RUN useradd -m -s /bin/bash -u 1000 user && \
     chown -R user:user /home/user
 
 # Minimal Wine config (no winetricks, no extra components)
-RUN gosu user wine winecfg && \
+ENV DISPLAY=:99
+RUN gosu user WINEDEBUG=-all wine winecfg && \
     gosu user wineserver -w
 
 # Set working directory
@@ -97,8 +98,8 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         export PYTHON_MIRROR=https://mirrors.huaweicloud.com/python; \
     fi && \
     wget -q ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
-    gosu user wine wineboot --init && \
-    gosu user wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
+    gosu user WINEDEBUG=-all wine wineboot --init && \
+    gosu user WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0 && \
     gosu user wineserver -w && \
     rm /tmp/install-python.exe
 

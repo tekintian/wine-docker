@@ -170,24 +170,6 @@ docker buildx build -f Dockerfile.minimal \
   -t wine:dev-wine10 .
 ```
 
-### 使用 Docker 命令
-
-```bash
-# 完整版 - Wine 11
-docker buildx build -t wine:latest --build-arg USE_CN_MIRRORS=1 .
-
-# 完整版 - Wine 10
-docker buildx build --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
-
-# 精简版 - Wine 11
-docker buildx build -f Dockerfile.minimal -t wine:dev --build-arg USE_CN_MIRRORS=1 .
-
-# 精简版 - Wine 10
-docker buildx build -f Dockerfile.minimal \
-  --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
-  -t wine:dev-wine10 .
-```
-
 ### CI/CD 自动构建
 
 项目提供两个独立的 GitHub Actions 工作流：
@@ -362,7 +344,9 @@ curl -s https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/main/binary-amd64/P
 **版本号格式说明**：
 - `11.0.0.0~jammy-1` - Wine 11 stable 版本
 - `10.0.0.0~jammy-1` - Wine 10 stable 版本
-- `10.20~jammy-1` - Wine 10 staging 版本
+- `9.0.0.0~jammy-1` - Wine 9 stable 版本
+
+版本号遵循 WineHQ 官方格式：`主版本号.次版本号.修订号.补丁号~发行版代号-修订`
 
 **相关链接**：
 - [WineHQ 包仓库](https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/main/binary-amd64/Packages)

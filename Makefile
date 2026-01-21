@@ -77,6 +77,9 @@ build-ubuntu-py311:
 		--load \
 		.
 
+build-ubuntu-py311-cn: USE_CN_MIRRORS=1
+build-ubuntu-py311-cn: build-ubuntu-py311
+
 .PHONY: build-ubuntu-win32-py311
 build-ubuntu-win32-py311:
 	docker buildx build --target python \

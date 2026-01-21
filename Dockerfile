@@ -76,8 +76,9 @@ RUN useradd -m -s /bin/bash user && \
     chown -R user:user /home/user
 
 # Configure Wine environment
-RUN gosu user sh -c 'wineboot -i' && \
-    gosu user xvfb-run sh -c 'winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w'
+ENV DISPLAY=:99
+RUN gosu user sh -c 'WINEDEBUG=-all xvfb-run wineboot -i' && \
+    gosu user xvfb-run sh -c 'WINEDEBUG=-all winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w'
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -113,7 +114,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     fi && \
     wget -q --show-progress ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
     gosu user xvfb-run \
-        sh -c 'wineboot && wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0; wineserver -w' && \
+        sh -c 'WINEDEBUG=-all wineboot && WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=0 Include_test=0; wineserver -w' && \
     rm /tmp/install-python.exe
 
 CMD [ "wine", "python" ]
