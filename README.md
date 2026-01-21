@@ -148,6 +148,12 @@ make build-ubuntu-wine10         # 构建 Wine 10 基础镜像
 make build-ubuntu-wine10-py311   # 构建 Wine 10 + Python 3.11
 make build-nvidia-wine10         # 构建 Wine 10 + NVIDIA GPU
 
+# 从源码编译（自定义版本）
+make build-source                # 从源码编译 Wine（默认 wine-11.0）
+make build-source-py             # 从源码编译 Wine + Python
+make build-source WINE_SOURCE_VERSION=wine-9.0    # 编译 Wine 9.0
+make build-source-py WINE_SOURCE_VERSION=wine-10.0 PYTHON_VERSION=3.12.8
+
 # 使用国内镜像加速（推荐）
 make build-cn
 ```
@@ -161,23 +167,31 @@ docker buildx build -t wine:latest --build-arg USE_CN_MIRRORS=1 .
 # 完整版 - Wine 10
 docker buildx build --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
 
-# 精简版 - Wine 11
+# 精简版 - Wine 11（包管理安装）
 docker buildx build -f Dockerfile.minimal -t wine:dev --build-arg USE_CN_MIRRORS=1 .
 
 # 精简版 - Wine 10
 docker buildx build -f Dockerfile.minimal \
   --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
   -t wine:dev-wine10 .
+
+# 从源码编译 - 指定版本
+docker buildx build -f Dockerfile.minimal \
+  --build-arg BUILD_FROM_SOURCE=1 \
+  --build-arg WINE_SOURCE_VERSION=wine-9.0 \
+  --build-arg WINE_BRANCH=stable \
+  -t wine:source-wine9.0 .
 ```
 
 ### CI/CD 自动构建
 
-项目提供两个独立的 GitHub Actions 工作流：
+项目提供三个独立的 GitHub Actions 工作流：
 
 - **deploy.yml** - 构建完整版镜像（Wine 11 和 Wine 10）
-- **deploy-minimal.yml** - 构建精简版镜像（Wine 11 和 Wine 10）
+- **deploy-minimal.yml** - 构建精简版镜像（Wine 11 和 Wine 10，包管理安装）
+- **build-source.yml** - 从源码编译指定版本的 Wine 镜像（手动触发，支持任意版本）
 
-当推送到 main 分支或创建 Release 时，会自动触发构建。也可通过 GitHub UI 手动触发。
+当推送到 main 分支或创建 Release 时，会自动触发 `deploy.yml` 和 `deploy-minimal.yml` 构建。`build-source.yml` 需通过 GitHub UI 手动触发，用于构建特定 Wine 版本。
 
 ## 🇨🇳 国内镜像加速
 
@@ -207,8 +221,10 @@ docker buildx build -f Dockerfile.minimal \
 | 变量 | 默认值 | 说明 |
 |-------|---------|------|
 | `USE_CN_MIRRORS` | 0 | 是否使用国内镜像（0 或 1）|
-| `WINE_BRANCH` | stable | Wine 分支（stable 或 devel）|
-| `WINE_VERSION` | (未指定) | Wine 版本（如 10.0.0.0~jammy-1）|
+| `WINE_BRANCH` | stable | Wine 分支（stable、devel 或 staging）|
+| `WINE_VERSION` | (未指定) | Wine 包版本（如 10.0.0.0~jammy-1）|
+| `WINE_SOURCE_VERSION` | wine-11.0 | 源码编译时的 Wine 版本 |
+| `BUILD_FROM_SOURCE` | 0 | 是否从源码编译（0 或 1）|
 | `WINEARCH` | win64 | Wine 架构（win64 或 win32）|
 | `PYTHON_VERSION` | 3.11.9 | Python 版本 |
 | `TZ` | Asia/Shanghai | 时区 |
@@ -266,16 +282,22 @@ docker run --rm -v $(pwd):/workspace \
 ## 📋 Makefile 目标
 
 ```bash
-# Wine 11 构建目标
+# Wine 11 构建目标（包管理安装）
 make build                    # 构建基础镜像
 make build-cn                 # 使用国内镜像构建
 make build-ubuntu-py311       # 构建 Python 版本
 make build-nvidia             # 构建 NVIDIA 版本
 
-# Wine 10 构建目标
+# Wine 10 构建目标（包管理安装）
 make build-ubuntu-wine10      # 构建 Wine 10 基础镜像
 make build-ubuntu-wine10-py311  # 构建 Wine 10 + Python 3.11
 make build-nvidia-wine10      # 构建 Wine 10 + NVIDIA GPU
+
+# 从源码编译目标
+make build-source             # 从源码编译 Wine（默认 wine-11.0）
+make build-source-py          # 从源码编译 Wine + Python
+make build-source WINE_SOURCE_VERSION=wine-9.0      # 编译指定版本
+make build-source-py WINE_SOURCE_VERSION=wine-9.0 PYTHON_VERSION=3.12.8
 
 # 运行目标
 make run                     # 运行基础镜像
@@ -304,11 +326,18 @@ docker buildx build \
 ### 切换 Wine 分支
 
 ```bash
-# 使用开发分支
+# 使用开发分支（包管理安装）
 docker buildx build --build-arg WINE_BRANCH=devel -t wine:latest .
 
 # 使用指定历史版本（如 Wine 10）
 docker buildx build --build-arg WINE_BRANCH=stable --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
+
+# 从源码编译指定版本
+docker buildx build -f Dockerfile.minimal \
+  --build-arg BUILD_FROM_SOURCE=1 \
+  --build-arg WINE_SOURCE_VERSION=wine-9.0 \
+  --build-arg WINE_BRANCH=stable \
+  -t wine:source-wine9.0 .
 ```
 
 ### 自定义 Python 版本
@@ -322,6 +351,7 @@ docker buildx build --build-arg PYTHON_VERSION=3.12.0 -t wine:py312 .
 
 - [BUILD_CN.md](BUILD_CN.md) - 国内镜像加速使用说明
 - [BUILD_VARIANTS.md](BUILD_VARIANTS.md) - 完整版和精简版详细对比
+- [SOURCE_BUILD_GUIDE.md](SOURCE_BUILD_GUIDE.md) - 源码编译构建指南
 
 ### 查看 Wine 官方版本
 

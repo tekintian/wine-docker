@@ -15,9 +15,10 @@
 | **GPU 支持** | libvulkan1:i386 | 无 |
 | **Winetricks** | 已安装,预配置 | 未安装 |
 | **开发工具** | binutils, cabextract, unzip, lsof, xvfb, winbind, gosu | binutils, cabextract, unzip, curl, git, gosu |
+| **构建方式** | 仅包管理安装 | 包管理 + 源码编译（可选） |
 | **健康检查** | 有 | 无 |
 | **元数据标签** | 完整 OCI 标签 | 基本标签 |
-| **适用场景** | 运行 Windows 应用程序 | 构建/打包环境 |
+| **适用场景** | 运行 Windows 应用程序 | 构建/打包环境、指定版本 Wine |
 
 ## 🎯 适用场景
 
@@ -46,24 +47,50 @@ docker run --rm aoirint/wine:ubuntu-py311 python script.py
 
 **适用场景:**
 - ✅ 构建环境 (构建 Windows 程序)
-- ✅ 打包环境 (打包 Windows 安装包)
+- ✅ 打包环境 (打包 Windows 安装包，如 PyInstaller、NSIS)
 - ✅ CI/CD 环境 (快速构建和测试)
 - ✅ 只需要 Wine 核心功能
 - ✅ 不需要 GUI、音频、游戏支持
+- ✅ 需要特定 Wine 版本（通过源码编译）
+
+**构建方式:**
+
+**1. 包管理安装（默认，快速）**
+```bash
+# 使用标准版本
+docker build -f Dockerfile.minimal -t wine:dev .
+
+# 使用 Wine 10
+docker build -f Dockerfile.minimal --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:dev-wine10 .
+```
+
+**2. 源码编译（可指定任意版本）**
+```bash
+# 编译 Wine 9.0
+docker build -f Dockerfile.minimal \
+  --build-arg BUILD_FROM_SOURCE=1 \
+  --build-arg WINE_SOURCE_VERSION=wine-9.0 \
+  -t wine:source-wine9.0 .
+
+# 编译 Wine 10.0 + Python 3.12
+docker build -f Dockerfile.minimal --target python \
+  --build-arg BUILD_FROM_SOURCE=1 \
+  --build-arg WINE_SOURCE_VERSION=wine-10.0 \
+  --build-arg PYTHON_VERSION=3.12.8 \
+  -t wine:source-wine10-py3.12.8 .
+```
 
 **示例用例:**
 ```bash
 # 构建环境 - 进入容器执行构建
-docker run --rm -v $(pwd):/workspace aoirint/wine:latest bash
-
-# 使用精简版构建
-docker build -f Dockerfile.minimal -t wine:dev .
+docker run --rm -v $(pwd):/workspace registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev bash
 
 # 运行构建命令
-docker run --rm -v $(pwd):/workspace wine:dev wine build.bat
+docker run --rm -v $(pwd):/workspace registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev wine build.bat
 
-# 使用 Python 构建
-docker run --rm -v $(pwd):/workspace wine:dev python build.py
+# PyInstaller 打包
+docker run --rm -v $(pwd):/workspace registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-py bash -c \
+  "wine python -m pip install pyinstaller && wine pyinstaller --onefile your_app.py"
 ```
 
 ## 📦 组件差异详解
@@ -138,7 +165,7 @@ winetricks vcrun2019
 ### 构建
 
 ```bash
-# 基础版本
+# 基础版本（包管理安装）
 docker build -f Dockerfile.minimal --target ubuntu-base -t wine:dev .
 
 # Python 版本
@@ -147,6 +174,15 @@ docker build -f Dockerfile.minimal --target python -t wine:dev-py .
 # 使用国内镜像
 docker build -f Dockerfile.minimal --target ubuntu-base \
   --build-arg USE_CN_MIRRORS=1 -t wine:dev-cn .
+
+# 从源码编译（自定义版本，编译时间较长）
+docker build -f Dockerfile.minimal --target ubuntu-base \
+  --build-arg BUILD_FROM_SOURCE=1 \
+  --build-arg WINE_SOURCE_VERSION=wine-9.0 \
+  -t wine:source-wine9.0 .
+
+# 使用 GitHub Actions 构建源码版本（推荐）
+# 仓库 Actions -> Build Wine from Source -> Run workflow
 ```
 
 ### 运行
@@ -164,24 +200,50 @@ docker run --rm -v $(pwd):/workspace wine:dev-py python script.py
 
 ## 📝 Makefile 配置
 
-可以在 Makefile 中添加精简版目标:
+Makefile 已包含精简版构建目标:
 
 ```makefile
-# Minimal build target
+# 精简版构建目标（包管理安装）
 .PHONY: build-dev build-dev-py
 build-dev:
 	docker buildx build -f Dockerfile.minimal --target ubuntu-base \
-		-t $(REGISTRY)/$(IMAGE_NAME):dev \
+		-t $(REGISTRY):$(IMAGE_NAME)_dev \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		.
 
 build-dev-py:
 	docker buildx build -f Dockerfile.minimal --target python \
-		-t $(REGISTRY)/$(IMAGE_NAME):dev-py \
+		-t $(REGISTRY):$(IMAGE_NAME)_dev-py \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		.
+
+# 源码编译目标
+.PHONY: build-source build-source-py
+build-source:
+	docker buildx build --target ubuntu-base \
+		-t $(REGISTRY):$(IMAGE_NAME)_source-$(WINE_SOURCE_VERSION) \
+		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--build-arg BUILD_FROM_SOURCE=1 \
+		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
+		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
+		--load \
+		.
+
+build-source-py: PYTHON_VERSION ?= 3.11.9
+build-source-py:
+	docker buildx build --target python \
+		-t $(REGISTRY):$(IMAGE_NAME)_source-$(WINE_SOURCE_VERSION)-py$(PYTHON_VERSION) \
+		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--build-arg BUILD_FROM_SOURCE=1 \
+		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
+		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
+		--build-arg PYTHON_VERSION=$(PYTHON_VERSION) \
+		--load \
 		.
 ```
 
@@ -234,5 +296,8 @@ docker run --rm wine:full your_app.exe
 
 **结论**:
 - **开发/构建/打包环境**: 推荐使用 `Dockerfile.minimal`
+  - 使用包管理安装获取快速构建（默认）
+  - 使用源码编译获取特定 Wine 版本（通过 `BUILD_FROM_SOURCE=1`）
 - **运行 Windows 应用**: 推荐使用 `Dockerfile` (完整版)
 - **不确定需求**: 可以先用精简版,按需添加组件
+- **需要特定 Wine 版本**: 使用 `Dockerfile.minimal` + 源码编译或 GitHub Actions

@@ -6,6 +6,9 @@ REGISTRY ?= registry.cn-hangzhou.aliyuncs.com/tekintian/dev
 IMAGE_NAME = wine
 BUILD_ARGS = --build-arg BUILDKIT_INLINE_CACHE=1
 USE_CN_MIRRORS ?= 0
+WINE_SOURCE_VERSION ?= wine-11.0
+WINE_BRANCH ?= stable
+WINE_VERSION ?= 11.0.0.0~jammy-1
 
 # Run configuration
 RUN_ARGS_BASE = --rm -e LANG=zh_CN.UTF-8 -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix
@@ -25,6 +28,7 @@ build:
 		-t $(REGISTRY):$(IMAGE_NAME)_latest \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--build-arg WINE_VERSION=$(WINE_VERSION) \
 		--load \
 		.
 
@@ -127,8 +131,6 @@ build-ubuntu-wine10:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--load \
 		.
 
@@ -139,8 +141,6 @@ build-ubuntu-wine10-win32:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--load \
 		.
@@ -152,8 +152,6 @@ build-nvidia-wine10:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--load \
 		.
 
@@ -164,8 +162,6 @@ build-nvidia-wine10-win32:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--load \
 		.
@@ -178,8 +174,6 @@ build-ubuntu-wine10-py311:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--load \
 		.
@@ -191,8 +185,6 @@ build-ubuntu-wine10-win32-py311:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
@@ -206,8 +198,6 @@ build-nvidia-wine10-py311:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-py311 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--load \
 		.
@@ -219,11 +209,36 @@ build-nvidia-wine10-win32-py311:
 		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32-py311 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=stable \
-		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--load \
+		.
+
+# Build from source - Base images
+# ===============================
+.PHONY: build-source build-source-py
+build-source:
+	docker buildx build --target ubuntu-base \
+		-t $(REGISTRY):$(IMAGE_NAME)_source-$(WINE_SOURCE_VERSION) \
+		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--build-arg BUILD_FROM_SOURCE=1 \
+		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
+		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
+		--load \
+		.
+
+build-source-py: PYTHON_VERSION ?= 3.11.9
+build-source-py:
+	docker buildx build --target python \
+		-t $(REGISTRY):$(IMAGE_NAME)_source-$(WINE_SOURCE_VERSION)-py$(PYTHON_VERSION) \
+		$(BUILD_ARGS) \
+		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--build-arg BUILD_FROM_SOURCE=1 \
+		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
+		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
+		--build-arg PYTHON_VERSION=$(PYTHON_VERSION) \
 		--load \
 		.
 
@@ -300,6 +315,10 @@ help:
 	@echo "  make build-ubuntu-wine10  Build wine-10 image"
 	@echo "  make build-nvidia-wine10  Build NVIDIA wine-10 image"
 	@echo ""
+	@echo "Build Targets (From Source):"
+	@echo "  make build-source          Build Wine from source"
+	@echo "  make build-source-py       Build Wine from source with Python"
+	@echo ""
 	@echo "Run Targets:"
 	@echo "  make run               Run wine container"
 	@echo "  make run-ubuntu-py311   Run wine with Python 3.11"
@@ -315,8 +334,13 @@ help:
 	@echo "  REGISTRY              Docker registry (default: registry.cn-hangzhou.aliyuncs.com/tekintian/dev)"
 	@echo "  IMAGE_NAME            Image name (default: wine)"
 	@echo "  USE_CN_MIRRORS        Use China mirrors (0 or 1, default: 0)"
+	@echo "  WINE_SOURCE_VERSION   Wine version to build from source (default: wine-11.0)"
+	@echo "  WINE_BRANCH           Wine branch: stable, devel, staging (default: stable)"
+	@echo "  PYTHON_VERSION        Python version for build-source-py (default: 3.11.9)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make build-cn         Build with China mirrors"
 	@echo "  make build USE_CN_MIRRORS=1  Same as above"
 	@echo "  make REGISTRY=myrepo build  Use custom registry"
+	@echo "  make build-source WINE_SOURCE_VERSION=wine-9.0  Build Wine 9.0 from source"
+	@echo "  make build-source-py WINE_SOURCE_VERSION=wine-10.0 PYTHON_VERSION=3.12.8"

@@ -10,6 +10,8 @@ ARG WINE_BRANCH=stable
 ARG WINE_VERSION=11.0.0.0~jammy-1
 ARG WINEARCH=win64
 ARG PYTHON_VERSION=3.11.9
+ARG BUILD_FROM_SOURCE=0
+ARG WINE_SOURCE_VERSION=wine-11.0
 
 # China mirrors support
 ARG USE_CN_MIRRORS=0
@@ -18,7 +20,7 @@ ARG USE_CN_MIRRORS=0
 RUN dpkg --add-architecture i386 && \
     mkdir -p /etc/apt/keyrings
 
-# Install Wine and essential tools only
+# Install Wine from source or package
 RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         sed -i 's|archive.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list && \
         sed -i 's|security.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list; \
@@ -28,16 +30,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         ca-certificates \
         wget \
         gnupg \
-        lsb-release && \
-    wget -qO- https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key && \
-    echo "deb [arch=amd64,i386 signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/winehq.list && \
-    apt-get update && \
-    if [ -n "$WINE_VERSION" ]; then \
-        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}=${WINE_VERSION}; \
-    else \
-        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}; \
-    fi && \
-    apt-get install -y --no-install-recommends \
+        lsb-release \
         gosu \
         binutils \
         cabextract \
@@ -46,6 +39,62 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         lsof \
         curl \
         git && \
+    if [ "$BUILD_FROM_SOURCE" = "1" ]; then \
+        echo "Building Wine from source: ${WINE_SOURCE_VERSION} (${WINE_BRANCH})" && \
+        apt-get install -y --no-install-recommends \
+            build-essential \
+            flex \
+            bison \
+            mingw-w64 \
+            libfaudio-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libglib2.0-dev \
+            libgphoto2-dev \
+            libgsm1-dev \
+            libkrb5-dev \
+            libmpg123-dev \
+            libopenal-dev \
+            libosmesa6-dev \
+            libpcap0.8-dev \
+            libpulse-dev \
+            libsane-dev \
+            libv4l-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libxslt1-dev \
+            libxxf86vm-dev \
+            zlib1g-dev \
+            libldap2-dev && \
+        mkdir -p /tmp/wine-build && \
+        cd /tmp/wine-build && \
+        wget -q https://dl.winehq.org/wine/source/${WINE_BRANCH}/${WINE_SOURCE_VERSION}.tar.xz && \
+        tar -xf ${WINE_SOURCE_VERSION}.tar.xz && \
+        cd ${WINE_SOURCE_VERSION} && \
+        mkdir -p build && \
+        cd build && \
+        ../configure --enable-win64 && \
+        make -j$(nproc) && \
+        make install && \
+        cd /tmp && \
+        rm -rf /tmp/wine-build; \
+    else \
+        echo "Installing Wine from package: winehq-${WINE_BRANCH}${WINE_VERSION:+=${WINE_VERSION}}" && \
+        wget -qO- https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key && \
+        echo "deb [arch=amd64,i386 signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/winehq.list && \
+        apt-get update && \
+        if [ -n "$WINE_VERSION" ]; then \
+            apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}=${WINE_VERSION}; \
+        else \
+            apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}; \
+        fi; \
+    fi && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -78,7 +127,7 @@ ENV WINEPREFIX=/home/user/.wine
 
 # Metadata
 LABEL org.opencontainers.image.title="Minimal Wine for Build/Dev"
-LABEL org.opencontainers.image.description="Minimal Wine environment optimized for build/packaging tasks"
+LABEL org.opencontainers.image.description="Minimal Wine environment optimized for build/packaging tasks (PyInstaller, NSIS, etc.)"
 LABEL org.opencontainers.image.version="1.0"
 LABEL maintainer="tekintian <tekintian@gmail.com>"
 

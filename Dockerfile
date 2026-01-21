@@ -77,7 +77,7 @@ RUN useradd -m -s /bin/bash user && \
 
 # Configure Wine environment
 ENV DISPLAY=:99
-RUN gosu user sh -c 'WINEDEBUG=-all xvfb-run wineboot -i' && \
+RUN gosu user wine wineboot -i && \
     gosu user xvfb-run sh -c 'WINEDEBUG=-all winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w'
 
 # Add healthcheck

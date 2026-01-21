@@ -1,0 +1,139 @@
+name: Build Wine from Source (Dev/Build Environment)
+
+on:
+  workflow_dispatch:
+    inputs:
+      wine_version:
+        description: 'Wine version to build (e.g., wine-9.0, wine-10.0, wine-11.0)'
+        required: true
+        type: string
+        default: 'wine-11.0'
+      wine_branch:
+        description: 'Wine branch (stable, devel, staging)'
+        required: true
+        type: choice
+        options:
+          - stable
+          - devel
+          - staging
+        default: 'stable'
+      python_version:
+        description: 'Python version to install (e.g., 3.11.9, 3.12.8)'
+        required: false
+        type: string
+        default: '3.11.9'
+      push_image:
+        description: 'Push built image to registry'
+        required: true
+        type: boolean
+        default: false
+      image_tag_suffix:
+        description: 'Additional tag suffix (e.g., custom, test1)'
+        required: false
+        type: string
+        default: ''
+
+env:
+  REGISTRY: registry.cn-hangzhou.aliyuncs.com/tekintian/dev
+  IMAGE_NAME: wine
+
+jobs:
+  build-from-source:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant:
+          - name: wine_source_base
+            target: ubuntu-base
+            arch: win64
+            push_tag: wine_source
+          - name: wine_source_python
+            target: python
+            arch: win64
+            push_tag: wine_source-py
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Aliyun Container Registry
+        if: inputs.push_image == true
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Generate image tag
+        id: tag
+        run: |
+          WINE_TAG="${{ inputs.wine_version }}-${{ inputs.wine_branch }}"
+          if [ -n "${{ inputs.image_tag_suffix }}" ]; then
+            TAG_SUFFIX="-${{ inputs.image_tag_suffix }}"
+          fi
+          FULL_TAG="${{ matrix.variant.push_tag }}-${WINE_TAG}${TAG_SUFFIX}"
+          echo "tag=${FULL_TAG}" >> $GITHUB_OUTPUT
+          echo "Image tag: ${FULL_TAG}"
+
+      - name: Build ${{ matrix.variant.name }} from source
+        run: |
+          docker buildx build \
+            -f Dockerfile.minimal \
+            --target ${{ matrix.variant.target }} \
+            -t ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg WINE_SOURCE_VERSION=${{ inputs.wine_version }} \
+            --build-arg WINE_BRANCH=${{ inputs.wine_branch }} \
+            --build-arg BUILD_FROM_SOURCE=1 \
+            --build-arg PYTHON_VERSION=${{ inputs.python_version }} \
+            --load \
+            .
+
+      - name: Run basic validation
+        run: |
+          docker run --rm ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} wine --version
+          if [ "${{ matrix.variant.target }}" = "python" ]; then
+            docker run --rm ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} wine python --version
+          fi
+
+      - name: Test PyInstaller compatibility
+        if: matrix.variant.target == 'python'
+        run: |
+          docker run --rm ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} bash -c \
+            "wine python -m pip install --upgrade pip setuptools wheel 2>/dev/null || true"
+
+      - name: Push image to registry
+        if: inputs.push_image == true
+        run: |
+          docker push ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }}
+
+      - name: Create additional tags
+        if: inputs.push_image == true && inputs.image_tag_suffix == ''
+        run: |
+          # Also tag with branch name only
+          docker tag ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} \
+                     ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ inputs.wine_branch }}
+          docker push ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ inputs.wine_branch }}
+
+      - name: Build summary
+        run: |
+          echo "## Wine from Source Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Wine Version:** ${{ inputs.wine_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ inputs.wine_branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ inputs.python_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Built Images" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          if [ inputs.push_image == 'true' ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Pull Command" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
