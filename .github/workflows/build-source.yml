@@ -1,6 +1,9 @@
 name: Build Wine from Source (Dev/Build Environment)
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       wine_mversion:
