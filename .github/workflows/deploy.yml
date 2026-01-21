@@ -91,52 +91,52 @@ jobs:
                      ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
           docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
 
-  # Build matrix for development branch
-  build-devel:
+  # Build matrix for wine-10 (from source)
+  build-wine10:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         variant:
-          - name: ubuntu-devel
+          - name: ubuntu-wine10
             target: ubuntu-base
             arch: win64
-            make_target: build-ubuntu-devel
-            push_tag: ubuntu-devel
-          - name: ubuntu-devel-win32
+            make_target: build-ubuntu-wine10
+            push_tag: ubuntu-wine10
+          - name: ubuntu-wine10-win32
             target: ubuntu-base
             arch: win32
-            make_target: build-ubuntu-devel-win32
-            push_tag: ubuntu-devel-win32
-          - name: ubuntu-devel-py311
+            make_target: build-ubuntu-wine10-win32
+            push_tag: ubuntu-wine10-win32
+          - name: ubuntu-wine10-py311
             target: python
             arch: win64
-            make_target: build-ubuntu-devel-py311
-            push_tag: ubuntu-devel-py311
-          - name: ubuntu-devel-win32-py311
+            make_target: build-ubuntu-wine10-py311
+            push_tag: ubuntu-wine10-py311
+          - name: ubuntu-wine10-win32-py311
             target: python
             arch: win32
-            make_target: build-ubuntu-devel-win32-py311
-            push_tag: ubuntu-devel-win32-py311
-          - name: nvidia-devel
+            make_target: build-ubuntu-wine10-win32-py311
+            push_tag: ubuntu-wine10-win32-py311
+          - name: nvidia-wine10
             target: ubuntu-base
             arch: win64
-            make_target: build-nvidia-devel
-            push_tag: nvidia-devel
-          - name: nvidia-devel-win32
+            make_target: build-nvidia-wine10
+            push_tag: nvidia-wine10
+          - name: nvidia-wine10-win32
             target: ubuntu-base
             arch: win32
-            make_target: build-nvidia-devel-win32
-            push_tag: nvidia-devel-win32
-          - name: nvidia-devel-py311
+            make_target: build-nvidia-wine10-win32
+            push_tag: nvidia-wine10-win32
+          - name: nvidia-wine10-py311
             target: python
             arch: win64
-            make_target: build-nvidia-devel-py311
-            push_tag: nvidia-devel-py311
-          - name: nvidia-devel-win32-py311
+            make_target: build-nvidia-wine10-py311
+            push_tag: nvidia-wine10-py311
+          - name: nvidia-wine10-win32-py311
             target: python
             arch: win32
-            make_target: build-nvidia-devel-win32-py311
-            push_tag: nvidia-devel-win32-py311
+            make_target: build-nvidia-wine10-win32-py311
+            push_tag: nvidia-wine10-win32-py311
       fail-fast: false
 
     steps:
@@ -208,7 +208,7 @@ jobs:
   # Summary job
   summary:
     runs-on: ubuntu-latest
-    needs: [build-stable, build-devel]
+    needs: [build-stable, build-wine10]
     if: always()
     steps:
       - name: Build summary
@@ -217,7 +217,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ All Docker images have been built and pushed to Aliyun Container Registry." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Available Images (Stable)" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Images (Wine 11 - Stable)" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-win32" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-py311" >> $GITHUB_STEP_SUMMARY
@@ -227,15 +227,15 @@ jobs:
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-py311" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-win32-py311" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Available Images (Development)" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-win32" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-py311" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-win32-py311" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-win32" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-py311" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-win32-py311" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Images (Wine 10)" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10-win32" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10-win32-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-wine10" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-wine10-win32" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-wine10-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-wine10-win32-py311" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Pull Example" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY

@@ -7,6 +7,7 @@ FROM ${BASE_IMAGE} AS ubuntu-base
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG WINE_BRANCH=stable
+ARG WINE_VERSION=11.0.0.0~jammy-1
 ARG WINEARCH=win64
 ARG PYTHON_VERSION=3.11.9
 
@@ -31,12 +32,18 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     wget -qO- https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key && \
     echo "deb [arch=amd64,i386 signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/winehq.list && \
     apt-get update && \
+    if [ -n "$WINE_VERSION" ]; then \
+        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}=${WINE_VERSION}; \
+    else \
+        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}; \
+    fi && \
     apt-get install -y --no-install-recommends \
-        winehq-${WINE_BRANCH} \
         gosu \
         binutils \
         cabextract \
         unzip \
+        xz-utils \
+        lsof \
         curl \
         git && \
     apt-get autoremove -y && \

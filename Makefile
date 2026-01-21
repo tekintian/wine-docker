@@ -109,90 +109,98 @@ build-nvidia-win32-py311:
 		--build-arg PYTHON_ARCH= \
 		.
 
-# Development branch - Base images
-.PHONY: build-ubuntu-devel
-build-ubuntu-devel:
+# Wine 10 branch - Base images (using historical package)
+.PHONY: build-ubuntu-wine10
+build-ubuntu-wine10:
 	docker buildx build --target ubuntu-base \
-		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel \
+		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		.
 
-.PHONY: build-ubuntu-devel-win32
-build-ubuntu-devel-win32:
+.PHONY: build-ubuntu-wine10-win32
+build-ubuntu-wine10-win32:
 	docker buildx build --target ubuntu-base \
-		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-win32 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-win32 \
+		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
 		$(BUILD_ARGS) \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		.
 
-.PHONY: build-nvidia-devel
-build-nvidia-devel:
+.PHONY: build-nvidia-wine10
+build-nvidia-wine10:
 	docker buildx build --target ubuntu-base \
-		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-devel \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-devel \
+		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		.
 
-.PHONY: build-nvidia-devel-win32
-build-nvidia-devel-win32:
+.PHONY: build-nvidia-wine10-win32
+build-nvidia-wine10-win32:
 	docker buildx build --target ubuntu-base \
-		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-win32 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-win32 \
+		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		.
 
-# Development branch - Python images
-.PHONY: build-ubuntu-devel-py311
-build-ubuntu-devel-py311:
+# Wine 10 branch - Python images (using historical package)
+.PHONY: build-ubuntu-wine10-py311
+build-ubuntu-wine10-py311:
 	docker buildx build --target python \
-		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-py311 \
+		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
 		$(BUILD_ARGS) \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		.
 
-.PHONY: build-ubuntu-devel-win32-py311
-build-ubuntu-devel-win32-py311:
+.PHONY: build-ubuntu-wine10-win32-py311
+build-ubuntu-wine10-win32-py311:
 	docker buildx build --target python \
-		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-win32-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-win32-py311 \
+		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
 		$(BUILD_ARGS) \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
 		.
 
-.PHONY: build-nvidia-devel-py311
-build-nvidia-devel-py311:
+.PHONY: build-nvidia-wine10-py311
+build-nvidia-wine10-py311:
 	docker buildx build --target python \
-		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-py311 \
+		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-py311 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-py311 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		.
 
-.PHONY: build-nvidia-devel-win32-py311
-build-nvidia-devel-win32-py311:
+.PHONY: build-nvidia-wine10-win32-py311
+build-nvidia-wine10-win32-py311:
 	docker buildx build --target python \
-		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-win32-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-win32-py311 \
+		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32-py311 \
+		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32-py311 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_BRANCH=devel \
+		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_VERSION=10.0.0.0~jammy-1 \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
@@ -224,23 +232,23 @@ run-ubuntu-py311: build-ubuntu-py311
 run-nvidia-py311: build-nvidia-py311
 	docker run $(RUN_ARGS_NVIDIA) $(REGISTRY):$(IMAGE_NAME)_nvidia-py311
 
-# Development branch - Base images
-.PHONY: run-ubuntu-devel
-run-ubuntu-devel: build-ubuntu-devel
-	docker run $(RUN_ARGS_BASE) $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel
+# Wine 10 branch - Base images
+.PHONY: run-ubuntu-wine10
+run-ubuntu-wine10: build-ubuntu-wine10
+	docker run $(RUN_ARGS_BASE) $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10
 
-.PHONY: run-nvidia-devel
-run-nvidia-devel: build-nvidia-devel
-	docker run $(RUN_ARGS_NVIDIA) $(REGISTRY):$(IMAGE_NAME)_nvidia-devel
+.PHONY: run-nvidia-wine10
+run-nvidia-wine10: build-nvidia-wine10
+	docker run $(RUN_ARGS_NVIDIA) $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10
 
-# Development branch - Python images
-.PHONY: run-ubuntu-devel-py311
-run-ubuntu-devel-py311: build-ubuntu-devel-py311
-	docker run $(RUN_ARGS_BASE) $(REGISTRY):$(IMAGE_NAME)_ubuntu-devel-py311
+# Wine 10 branch - Python images
+.PHONY: run-ubuntu-wine10-py311
+run-ubuntu-wine10-py311: build-ubuntu-wine10-py311
+	docker run $(RUN_ARGS_BASE) $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311
 
-.PHONY: run-nvidia-devel-py311
-run-nvidia-devel-py311: build-nvidia-devel-py311
-	docker run $(RUN_ARGS_NVIDIA) $(REGISTRY):$(IMAGE_NAME)_nvidia-devel-py311
+.PHONY: run-nvidia-wine10-py311
+run-nvidia-wine10-py311: build-nvidia-wine10-py311
+	docker run $(RUN_ARGS_NVIDIA) $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-py311
 
 # Utility Commands
 # ================
@@ -259,7 +267,7 @@ help:
 	@echo "Wine Docker - Build and Run Commands"
 	@echo "===================================="
 	@echo ""
-	@echo "Build Targets (Stable):"
+	@echo "Build Targets (Wine 11 - Stable):"
 	@echo "  make build             Build base wine image (latest)"
 	@echo "  make build-cn          Build using China mirrors for faster downloads"
 	@echo "  make build-ubuntu      Build ubuntu wine image"
@@ -267,9 +275,9 @@ help:
 	@echo "  make build-nvidia      Build NVIDIA GPU enabled image"
 	@echo "  make build-nvidia-py311 Build NVIDIA image with Python 3.11"
 	@echo ""
-	@echo "Build Targets (Development):"
-	@echo "  make build-ubuntu-devel  Build development wine image"
-	@echo "  make build-nvidia-devel  Build NVIDIA development image"
+	@echo "Build Targets (Wine 10):"
+	@echo "  make build-ubuntu-wine10  Build wine-10 image"
+	@echo "  make build-nvidia-wine10  Build NVIDIA wine-10 image"
 	@echo ""
 	@echo "Run Targets:"
 	@echo "  make run               Run wine container"

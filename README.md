@@ -13,16 +13,44 @@
 
 ## 📦 镜像变体
 
+### Wine 版本
+
+本项目提供两个 Wine 版本：
+
+| Wine 版本 | 说明 | 标签前缀 |
+|----------|------|---------|
+| Wine 11 (Stable) | 最新稳定版，使用 WineHQ stable 分支 | `wine_latest`, `wine_ubuntu-*`, `wine_nvidia-*` |
+| Wine 10 | 历史版本，使用 winehq-stable=10.0.0 历史包 | `wine_ubuntu-wine10*`, `wine_nvidia-wine10*` |
+
 ### 完整版 (Dockerfile)
 
 完整功能版本，适合运行 Windows 应用程序。
 
+#### Wine 11 (稳定版)
+
 | 镜像标签 | 描述 |
 |---------|------|
-| `wine_latest` | 基础 Wine 镜像 |
-| `wine_ubuntu-py311` | Wine + Python 3.11 |
-| `wine_nvidia` | Wine + NVIDIA GPU 支持 |
-| `wine_nvidia-py311` | Wine + Python 3.11 + NVIDIA GPU |
+| `wine_latest` | Wine 11 基础镜像 (win64) |
+| `wine_ubuntu-win32` | Wine 11 + win32 架构 |
+| `wine_ubuntu-py311` | Wine 11 + Python 3.11 (win64) |
+| `wine_ubuntu-win32-py311` | Wine 11 + Python 3.11 (win32) |
+| `wine_nvidia` | Wine 11 + NVIDIA GPU 支持 (win64) |
+| `wine_nvidia-win32` | Wine 11 + NVIDIA GPU (win32) |
+| `wine_nvidia-py311` | Wine 11 + Python 3.11 + NVIDIA GPU (win64) |
+| `wine_nvidia-win32-py311` | Wine 11 + Python 3.11 + NVIDIA GPU (win32) |
+
+#### Wine 10 (历史版本)
+
+| 镜像标签 | 描述 |
+|---------|------|
+| `wine_ubuntu-wine10` | Wine 10 基础镜像 (win64) |
+| `wine_ubuntu-wine10-win32` | Wine 10 + win32 架构 |
+| `wine_ubuntu-wine10-py311` | Wine 10 + Python 3.11 (win64) |
+| `wine_ubuntu-wine10-win32-py311` | Wine 10 + Python 3.11 (win32) |
+| `wine_nvidia-wine10` | Wine 10 + NVIDIA GPU 支持 (win64) |
+| `wine_nvidia-wine10-win32` | Wine 10 + NVIDIA GPU (win32) |
+| `wine_nvidia-wine10-py311` | Wine 10 + Python 3.11 + NVIDIA GPU (win64) |
+| `wine_nvidia-wine10-win32-py311` | Wine 10 + Python 3.11 + NVIDIA GPU (win32) |
 
 **特性**:
 - ✅ 完整的中文字体支持（Noto CJK、WQY Microhei、微软核心字体）
@@ -64,27 +92,39 @@
 ### 拉取镜像
 
 ```bash
-# 完整版（推荐运行 Windows 应用）
+# Wine 11 完整版（推荐）
 docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest
 
-# 精简版（推荐开发/打包环境）
-docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev
+# Wine 10 历史版本
+docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10
+
+# NVIDIA GPU 版本
+docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia
 
 # Python 版本
 docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-py311
+
+# 精简版（推荐开发/打包环境）
+docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev
 ```
 
 ### 运行容器
 
 ```bash
-# 基础运行
+# Wine 11 基础运行
 docker run --rm registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest
+
+# Wine 10 基础运行
+docker run --rm registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10
 
 # 挂载目录
 docker run --rm -v $(pwd):/workspace registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest
 
 # GPU 支持（需要 NVIDIA Container Toolkit）
 docker run --rm --gpus all registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia
+
+# GPU + Wine 10
+docker run --rm --gpus all registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-wine10
 
 # Python 环境
 docker run --rm registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-py311 wine python
@@ -98,32 +138,64 @@ docker run --rm registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-py31
 # 查看所有可用目标
 make help
 
-# 构建完整版
-make build
+# Wine 11 构建目标
+make build                        # 构建 Wine 11 基础镜像
+make build-ubuntu-py311          # 构建 Wine 11 + Python 3.11
+make build-nvidia                # 构建 Wine 11 + NVIDIA GPU
 
-# 构建精简版
-docker build -f Dockerfile.minimal -t wine:dev .
+# Wine 10 构建目标
+make build-ubuntu-wine10         # 构建 Wine 10 基础镜像
+make build-ubuntu-wine10-py311   # 构建 Wine 10 + Python 3.11
+make build-nvidia-wine10         # 构建 Wine 10 + NVIDIA GPU
 
 # 使用国内镜像加速（推荐）
 make build-cn
-
-# 构建特定变体
-make build-ubuntu-py311
-make build-nvidia
 ```
 
 ### 使用 Docker 命令
 
 ```bash
-# 完整版
+# 完整版 - Wine 11
 docker buildx build -t wine:latest --build-arg USE_CN_MIRRORS=1 .
 
-# 精简版
-docker buildx build -f Dockerfile.minimal -t wine:dev .
+# 完整版 - Wine 10
+docker buildx build --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
 
-# 使用国内镜像
-docker buildx build -f Dockerfile.minimal --build-arg USE_CN_MIRRORS=1 -t wine:dev .
+# 精简版 - Wine 11
+docker buildx build -f Dockerfile.minimal -t wine:dev --build-arg USE_CN_MIRRORS=1 .
+
+# 精简版 - Wine 10
+docker buildx build -f Dockerfile.minimal \
+  --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
+  -t wine:dev-wine10 .
 ```
+
+### 使用 Docker 命令
+
+```bash
+# 完整版 - Wine 11
+docker buildx build -t wine:latest --build-arg USE_CN_MIRRORS=1 .
+
+# 完整版 - Wine 10
+docker buildx build --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
+
+# 精简版 - Wine 11
+docker buildx build -f Dockerfile.minimal -t wine:dev --build-arg USE_CN_MIRRORS=1 .
+
+# 精简版 - Wine 10
+docker buildx build -f Dockerfile.minimal \
+  --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
+  -t wine:dev-wine10 .
+```
+
+### CI/CD 自动构建
+
+项目提供两个独立的 GitHub Actions 工作流：
+
+- **deploy.yml** - 构建完整版镜像（Wine 11 和 Wine 10）
+- **deploy-minimal.yml** - 构建精简版镜像（Wine 11 和 Wine 10）
+
+当推送到 main 分支或创建 Release 时，会自动触发构建。也可通过 GitHub UI 手动触发。
 
 ## 🇨🇳 国内镜像加速
 
@@ -154,6 +226,7 @@ docker buildx build -f Dockerfile.minimal --build-arg USE_CN_MIRRORS=1 -t wine:d
 |-------|---------|------|
 | `USE_CN_MIRRORS` | 0 | 是否使用国内镜像（0 或 1）|
 | `WINE_BRANCH` | stable | Wine 分支（stable 或 devel）|
+| `WINE_VERSION` | (未指定) | Wine 版本（如 10.0.0.0~jammy-1）|
 | `WINEARCH` | win64 | Wine 架构（win64 或 win32）|
 | `PYTHON_VERSION` | 3.11.9 | Python 版本 |
 | `TZ` | Asia/Shanghai | 时区 |
@@ -211,21 +284,28 @@ docker run --rm -v $(pwd):/workspace \
 ## 📋 Makefile 目标
 
 ```bash
-# 构建目标
-make                    # 构建基础镜像
-make build-cn             # 使用国内镜像构建
-make build-ubuntu-py311  # 构建 Python 版本
-make build-nvidia         # 构建 NVIDIA 版本
+# Wine 11 构建目标
+make build                    # 构建基础镜像
+make build-cn                 # 使用国内镜像构建
+make build-ubuntu-py311       # 构建 Python 版本
+make build-nvidia             # 构建 NVIDIA 版本
+
+# Wine 10 构建目标
+make build-ubuntu-wine10      # 构建 Wine 10 基础镜像
+make build-ubuntu-wine10-py311  # 构建 Wine 10 + Python 3.11
+make build-nvidia-wine10      # 构建 Wine 10 + NVIDIA GPU
 
 # 运行目标
-make run                 # 运行基础镜像
-make run-ubuntu-py311   # 运行 Python 版本
-make run-nvidia          # 运行 NVIDIA 版本
+make run                     # 运行基础镜像
+make run-ubuntu-py311         # 运行 Python 版本
+make run-nvidia              # 运行 NVIDIA 版本
+make run-ubuntu-wine10       # 运行 Wine 10 基础镜像
+make run-nvidia-wine10       # 运行 Wine 10 + NVIDIA GPU
 
 # 清理目标
-make clean               # 删除所有镜像
-make clean-cache         # 清理构建缓存
-make help                # 显示帮助信息
+make clean                   # 删除所有镜像
+make clean-cache             # 清理构建缓存
+make help                    # 显示帮助信息
 ```
 
 ## 🔧 自定义构建
@@ -244,6 +324,9 @@ docker buildx build \
 ```bash
 # 使用开发分支
 docker buildx build --build-arg WINE_BRANCH=devel -t wine:latest .
+
+# 使用指定历史版本（如 Wine 10）
+docker buildx build --build-arg WINE_BRANCH=stable --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
 ```
 
 ### 自定义 Python 版本
@@ -257,6 +340,33 @@ docker buildx build --build-arg PYTHON_VERSION=3.12.0 -t wine:py312 .
 
 - [BUILD_CN.md](BUILD_CN.md) - 国内镜像加速使用说明
 - [BUILD_VARIANTS.md](BUILD_VARIANTS.md) - 完整版和精简版详细对比
+
+### 查看 Wine 官方版本
+
+可以通过以下方式查看 WineHQ 官方仓库中的可用版本：
+
+```bash
+# 查看 stable 分支的最新版本
+curl -s https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/main/binary-amd64/Packages | \
+  grep "winehq-stable_" | grep "Filename" | tail -1
+
+# 查看 staging 分支的最新版本
+curl -s https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/main/binary-amd64/Packages | \
+  grep "winehq-staging_" | grep "Filename" | tail -1
+
+# 查看所有可用的 stable 版本
+curl -s https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/main/binary-amd64/Packages | \
+  grep "Package: winehq-stable" -A 1 | grep "Filename"
+```
+
+**版本号格式说明**：
+- `11.0.0.0~jammy-1` - Wine 11 stable 版本
+- `10.0.0.0~jammy-1` - Wine 10 stable 版本
+- `10.20~jammy-1` - Wine 10 staging 版本
+
+**相关链接**：
+- [WineHQ 包仓库](https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/main/binary-amd64/Packages)
+- [WineHQ 官网](https://www.winehq.org/)
 
 ## 🤝 故障排查
 
