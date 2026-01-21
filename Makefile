@@ -7,7 +7,6 @@ IMAGE_NAME = wine
 BUILD_ARGS = --build-arg BUILDKIT_INLINE_CACHE=1
 USE_CN_MIRRORS ?= 0
 WINE_SOURCE_VERSION ?= wine-11.0
-WINE_BRANCH ?= stable
 WINE_VERSION ?= 11.0.0.0~jammy-1
 
 # Run configuration
@@ -124,6 +123,7 @@ build-nvidia-win32-py311:
 		.
 
 # Wine 10 branch - Build from source (use Dockerfile.source)
+# version from: https://dl.winehq.org/wine/source/
 # =========================================================
 .PHONY: build-ubuntu-wine10
 build-ubuntu-wine10:
@@ -131,8 +131,8 @@ build-ubuntu-wine10:
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--load \
 		.
 
@@ -143,8 +143,8 @@ build-ubuntu-wine10-win32:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--load \
 		.
 
@@ -154,8 +154,8 @@ build-nvidia-wine10:
 		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--load \
 		.
 
@@ -166,8 +166,8 @@ build-nvidia-wine10-win32:
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINEARCH=win32 \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--load \
 		.
 
@@ -180,7 +180,7 @@ build-ubuntu-wine10-py311:
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
 		--load \
 		.
 
@@ -191,10 +191,9 @@ build-ubuntu-wine10-win32-py311:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
-		--build-arg PYTHON_VERSION=3.11.9 \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--build-arg PYTHON_ARCH= \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
@@ -205,8 +204,8 @@ build-nvidia-wine10-py311:
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg PYTHON_VERSION=3.11.9 \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--load \
 		.
 
@@ -219,8 +218,8 @@ build-nvidia-wine10-win32-py311:
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
-		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
-		--build-arg WINE_BRANCH=stable \
+		--build-arg WINE_SOURCE_MVERSION=10.x \
+		--build-arg WINE_SOURCE_VERSION=10.20 \
 		--load \
 		.
 
@@ -233,7 +232,6 @@ build-source:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
-		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
 		--load \
 		.
 
@@ -244,7 +242,6 @@ build-source-py:
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
-		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
 		--build-arg PYTHON_VERSION=$(PYTHON_VERSION) \
 		--load \
 		.
@@ -342,7 +339,6 @@ help:
 	@echo "  IMAGE_NAME            Image name (default: wine)"
 	@echo "  USE_CN_MIRRORS        Use China mirrors (0 or 1, default: 0)"
 	@echo "  WINE_SOURCE_VERSION   Wine version to build from source (default: wine-11.0)"
-	@echo "  WINE_BRANCH           Wine branch: stable, devel, staging (default: stable)"
 	@echo "  PYTHON_VERSION        Python version for build-source-py (default: 3.11.9)"
 	@echo ""
 	@echo "Examples:"
@@ -350,4 +346,4 @@ help:
 	@echo "  make build USE_CN_MIRRORS=1  Same as above"
 	@echo "  make REGISTRY=myrepo build  Use custom registry"
 	@echo "  make build-source WINE_SOURCE_VERSION=wine-9.0  Build Wine 9.0 from source"
-	@echo "  make build-source-py WINE_SOURCE_VERSION=wine-10.0 PYTHON_VERSION=3.12.8"
+	@echo "  make build-source-py WINE_SOURCE_VERSION=wine-11.0 PYTHON_VERSION=3.12.8"

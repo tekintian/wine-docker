@@ -40,6 +40,12 @@
 | `wine_nvidia-win32-py311` | Wine 11 + Python 3.11 + NVIDIA GPU (win32) |
 
 #### Wine 10 (历史版本)
+所有版本列表请通过一下地址获取,主版本和分支号:  
+https://dl.winehq.org/wine/source/
+
+仅适用于 源码编译的版本, 其他版本请参考 Wine 官方文档.
+
+
 
 | 镜像标签 | 描述 |
 |---------|------|
@@ -95,9 +101,6 @@
 # Wine 11 完整版（推荐）
 docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest
 
-# Wine 10 历史版本
-docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10
-
 # NVIDIA GPU 版本
 docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia
 
@@ -113,9 +116,6 @@ docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev
 ```bash
 # Wine 11 基础运行
 docker run --rm registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest
-
-# Wine 10 基础运行
-docker run --rm registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-wine10
 
 # 挂载目录
 docker run --rm -v $(pwd):/workspace registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest
@@ -222,13 +222,20 @@ docker buildx build -f Dockerfile.minimal \
 |-------|---------|------|
 | `USE_CN_MIRRORS` | 0 | 是否使用国内镜像（0 或 1）|
 | `WINE_BRANCH` | stable | Wine 分支（stable、devel 或 staging）|
-| `WINE_VERSION` | (未指定) | Wine 包版本（如 10.0.0.0~jammy-1）|
-| `WINE_SOURCE_VERSION` | wine-11.0 | 源码编译时的 Wine 版本 |
+| `WINE_SOURCE_NVERSION` | 10.X | 源码编译时的 Wine 主版本 |
+| `WINE_SOURCE_VERSION` | 10.20 | 源码编译时的 Wine 版本 |
 | `BUILD_FROM_SOURCE` | 0 | 是否从源码编译（0 或 1）|
 | `WINEARCH` | win64 | Wine 架构（win64 或 win32）|
 | `PYTHON_VERSION` | 3.11.9 | Python 版本 |
 | `TZ` | Asia/Shanghai | 时区 |
 | `LANG` | zh_CN.UTF-8 | 语言环境 |
+
+
+所有版本列表请通过一下地址获取,主版本和分支号:  
+https://dl.winehq.org/wine/source/
+
+仅适用于 源码编译的版本, 其他版本请参考 Wine 官方文档.
+
 
 ### 工作目录
 
@@ -329,15 +336,11 @@ docker buildx build \
 # 使用开发分支（包管理安装）
 docker buildx build --build-arg WINE_BRANCH=devel -t wine:latest .
 
-# 使用指定历史版本（如 Wine 10）
-docker buildx build --build-arg WINE_BRANCH=stable --build-arg WINE_VERSION=10.0.0.0~jammy-1 -t wine:wine10 .
 
 # 从源码编译指定版本
 docker buildx build -f Dockerfile.minimal \
-  --build-arg BUILD_FROM_SOURCE=1 \
-  --build-arg WINE_SOURCE_VERSION=wine-9.0 \
   --build-arg WINE_BRANCH=stable \
-  -t wine:source-wine9.0 .
+  -t wine:dev-stable .
 ```
 
 ### 自定义 Python 版本

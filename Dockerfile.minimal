@@ -66,6 +66,7 @@ RUN useradd -m -s /bin/bash -u 1000 user && \
 
 # Minimal Wine config (no winetricks, no extra components)
 ENV DISPLAY=:99
+ENV XDG_RUNTIME_DIR=/tmp
 RUN gosu user env WINEDEBUG=-all wine winecfg && \
     gosu user wineserver -w
 

@@ -5,7 +5,6 @@
 ## 功能特点
 
 - **指定版本编译**: 可以构建任意 Wine 版本（wine-9.0, wine-10.0, wine-11.0 等）
-- **分支选择**: 支持 stable、devel、staging 三个分支
 - **开发优化**: 针对应用打包场景优化，预装必要工具
 - **Python 支持**: 可选择预装指定版本的 Windows Python
 
@@ -39,9 +38,6 @@ make build-source
 # 构建指定版本
 make build-source WINE_SOURCE_VERSION=wine-9.0
 
-# 构建指定分支
-make build-source WINE_SOURCE_VERSION=wine-10.0 WINE_BRANCH=devel
-
 # 使用中国镜像加速
 make build-source USE_CN_MIRRORS=1
 ```
@@ -56,7 +52,7 @@ make build-source-py
 make build-source-py WINE_SOURCE_VERSION=wine-9.0 PYTHON_VERSION=3.12.8
 
 # 完整示例
-make build-source-py WINE_SOURCE_VERSION=wine-10.0 WINE_BRANCH=stable PYTHON_VERSION=3.11.9 USE_CN_MIRRORS=1
+make build-source-py WINE_SOURCE_VERSION=wine-11.0 PYTHON_VERSION=3.11.9 USE_CN_MIRRORS=1
 ```
 
 ### 方式三：直接使用 Docker 命令
@@ -68,7 +64,6 @@ docker buildx build \
   --target ubuntu-base \
   -t wine-source:wine-11.0 \
   --build-arg WINE_SOURCE_VERSION=wine-11.0 \
-  --build-arg WINE_BRANCH=stable \
   --load \
   .
 
@@ -78,7 +73,6 @@ docker buildx build \
   --target python \
   -t wine-source:wine-11.0-py3.11.9 \
   --build-arg WINE_SOURCE_VERSION=wine-11.0 \
-  --build-arg WINE_BRANCH=stable \
   --build-arg PYTHON_VERSION=3.11.9 \
   --load \
   .
@@ -113,10 +107,7 @@ docker run --rm -v $(pwd):/workspace wine-source:wine-11.0 bash
 
 1. **构建时间**: 从源码编译 Wine 需要 30-60 分钟，取决于机器性能
 2. **镜像大小**: 源码编译的镜像会比预编译版本稍大
-3. **分支选择**:
-   - `stable`: 稳定版本，推荐用于生产环境
-   - `devel`: 开发版本，包含最新功能
-   - `staging`: 包含实验性补丁，可能有兼容性问题
+3. **版本选择**: 源码版本按版本号组织，可访问 https://dl.winehq.org/wine/source/ 查看可用版本
 
 ## 版本可用性
 

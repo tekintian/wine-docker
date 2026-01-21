@@ -3,20 +3,16 @@ name: Build Wine from Source (Dev/Build Environment)
 on:
   workflow_dispatch:
     inputs:
-      wine_version:
-        description: 'Wine version to build (e.g., wine-9.0, wine-10.0, wine-11.0)'
+      wine_mversion:
+        description: 'Wine major version to build (e.g. 9.x,10.x)'
         required: true
         type: string
-        default: 'wine-11.0'
-      wine_branch:
-        description: 'Wine branch (stable, devel, staging)'
+        default: '10.x'
+      wine_version:
+        description: 'Wine version to build (e.g., 9.22, 10.20)'
         required: true
-        type: choice
-        options:
-          - stable
-          - devel
-          - staging
-        default: 'stable'
+        type: string
+        default: '10.20'
       python_version:
         description: 'Python version to install (e.g., 3.11.9, 3.12.8)'
         required: false
@@ -71,7 +67,7 @@ jobs:
       - name: Generate image tag
         id: tag
         run: |
-          WINE_TAG="${{ inputs.wine_version }}-${{ inputs.wine_branch }}"
+          WINE_TAG="${{ inputs.wine_version }}"
           if [ -n "${{ inputs.image_tag_suffix }}" ]; then
             TAG_SUFFIX="-${{ inputs.image_tag_suffix }}"
           fi
@@ -86,8 +82,8 @@ jobs:
             --target ${{ matrix.variant.target }} \
             -t ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg WINE_SOURCE_MVERSION=${{ inputs.wine_mversion }} \
             --build-arg WINE_SOURCE_VERSION=${{ inputs.wine_version }} \
-            --build-arg WINE_BRANCH=${{ inputs.wine_branch }} \
             --build-arg PYTHON_VERSION=${{ inputs.python_version }} \
             --build-arg USE_CN_MIRRORS=0 \
             --load \
@@ -114,10 +110,11 @@ jobs:
       - name: Create additional tags
         if: inputs.push_image == true && inputs.image_tag_suffix == ''
         run: |
-          # Also tag with branch name only
+          # Extract version number (e.g., wine-11.0 -> 11.0)
+          VERSION_NUM=$(echo "${{ inputs.wine_version }}" | sed 's/wine-//')
           docker tag ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} \
-                     ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ inputs.wine_branch }}
-          docker push ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ inputs.wine_branch }}
+                     ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${VERSION_NUM}
+          docker push ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${VERSION_NUM}
 
       - name: Build summary
         run: |
@@ -125,7 +122,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Build Information" >> $GITHUB_STEP_SUMMARY
           echo "- **Wine Version:** ${{ inputs.wine_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** ${{ inputs.wine_branch }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Python Version:** ${{ inputs.python_version }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Built Images" >> $GITHUB_STEP_SUMMARY
