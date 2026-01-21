@@ -35,6 +35,12 @@ on:
 env:
   REGISTRY: registry.cn-hangzhou.aliyuncs.com/tekintian/dev
   IMAGE_NAME: wine
+  # Default values for inputs
+  WINE_MVERSION: ${{ inputs.wine_mversion || '10.x' }}
+  WINE_VERSION: ${{ inputs.wine_version || '10.20' }}
+  PYTHON_VERSION: ${{ inputs.python_version || '3.11.9' }}
+  PUSH_IMAGE: ${{ inputs.push_image || 'true' }}
+  IMAGE_TAG_SUFFIX: ${{ inputs.image_tag_suffix || '' }}
 
 jobs:
   build-from-source:
@@ -60,7 +66,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Aliyun Container Registry
-        if: inputs.push_image == true
+        if: env.PUSH_IMAGE == 'true'
         uses: docker/login-action@v3
         with:
           registry: registry.cn-hangzhou.aliyuncs.com
@@ -70,9 +76,9 @@ jobs:
       - name: Generate image tag
         id: tag
         run: |
-          WINE_TAG="${{ inputs.wine_version }}"
-          if [ -n "${{ inputs.image_tag_suffix }}" ]; then
-            TAG_SUFFIX="-${{ inputs.image_tag_suffix }}"
+          WINE_TAG="${{ env.WINE_VERSION }}"
+          if [ -n "${{ env.IMAGE_TAG_SUFFIX }}" ]; then
+            TAG_SUFFIX="-${{ env.IMAGE_TAG_SUFFIX }}"
           fi
           FULL_TAG="${{ matrix.variant.push_tag }}-${WINE_TAG}${TAG_SUFFIX}"
           echo "tag=${FULL_TAG}" >> $GITHUB_OUTPUT
@@ -85,9 +91,9 @@ jobs:
             --target ${{ matrix.variant.target }} \
             -t ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg WINE_SOURCE_MVERSION=${{ inputs.wine_mversion }} \
-            --build-arg WINE_SOURCE_VERSION=${{ inputs.wine_version }} \
-            --build-arg PYTHON_VERSION=${{ inputs.python_version }} \
+            --build-arg WINE_SOURCE_MVERSION=${{ env.WINE_MVERSION }} \
+            --build-arg WINE_SOURCE_VERSION=${{ env.WINE_VERSION }} \
+            --build-arg PYTHON_VERSION=${{ env.PYTHON_VERSION }} \
             --build-arg USE_CN_MIRRORS=0 \
             --load \
             .
@@ -106,15 +112,15 @@ jobs:
             "wine python -m pip install --upgrade pip setuptools wheel 2>/dev/null || true"
 
       - name: Push image to registry
-        if: inputs.push_image == true
+        if: env.PUSH_IMAGE == 'true'
         run: |
           docker push ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }}
 
       - name: Create additional tags
-        if: inputs.push_image == true && inputs.image_tag_suffix == ''
+        if: env.PUSH_IMAGE == 'true' && env.IMAGE_TAG_SUFFIX == ''
         run: |
           # Extract version number (e.g., wine-11.0 -> 11.0)
-          VERSION_NUM=$(echo "${{ inputs.wine_version }}" | sed 's/wine-//')
+          VERSION_NUM=$(echo "${{ env.WINE_VERSION }}" | sed 's/wine-//')
           docker tag ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }} \
                      ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${VERSION_NUM}
           docker push ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${VERSION_NUM}
@@ -124,12 +130,12 @@ jobs:
           echo "## Wine from Source Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Build Information" >> $GITHUB_STEP_SUMMARY
-          echo "- **Wine Version:** ${{ inputs.wine_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Python Version:** ${{ inputs.python_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Wine Version:** ${{ env.WINE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ env.PYTHON_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Built Images" >> $GITHUB_STEP_SUMMARY
           echo "- ${{ env.REGISTRY }}:${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
-          if [ inputs.push_image == 'true' ]; then
+          if [ "${{ env.PUSH_IMAGE }}" == 'true' ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Pull Command" >> $GITHUB_STEP_SUMMARY
             echo '```bash' >> $GITHUB_STEP_SUMMARY
