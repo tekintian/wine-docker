@@ -20,14 +20,14 @@ jobs:
     strategy:
       matrix:
         variant:
-          - name: wine_dev
+          - name: wine_dev-stable
             target: ubuntu-base
             arch: win64
-            push_tag: wine_dev
-          - name: wine_dev-py
+            push_tag: wine_dev-stable
+          - name: wine_dev-stable-py
             target: python
             arch: win64
-            push_tag: wine_dev-py
+            push_tag: wine_dev-stable-py
       fail-fast: false
 
     steps:
@@ -51,8 +51,6 @@ jobs:
             --target ${{ matrix.variant.target }} \
             -t ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --build-arg WINE_BRANCH=stable \
-            --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
             --load \
             .
 
@@ -67,20 +65,20 @@ jobs:
                      ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
           docker push ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
 
-  # Build minimal images with Wine 10
+  # Build minimal images with Wine 10 (from source - using Dockerfile.source)
   build-minimal-wine10:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         variant:
-          - name: wine_dev-wine10
+          - name: wine_dev-10.0
             target: ubuntu-base
             arch: win64
-            push_tag: wine_dev-wine10
-          - name: wine_dev-wine10-py
+            push_tag: wine_dev-10.0
+          - name: wine_dev-10.0-py
             target: python
             arch: win64
-            push_tag: wine_dev-wine10-py
+            push_tag: wine_dev-10.0-py
       fail-fast: false
 
     steps:
@@ -100,12 +98,12 @@ jobs:
       - name: Build ${{ matrix.variant.name }}
         run: |
           docker buildx build \
-            -f Dockerfile.minimal \
+            -f Dockerfile.source \
             --target ${{ matrix.variant.target }} \
             -t ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg WINE_SOURCE_VERSION=wine-10.0 \
             --build-arg WINE_BRANCH=stable \
-            --build-arg WINE_VERSION=10.0.0.0~jammy-1 \
             --load \
             .
 
@@ -119,7 +117,6 @@ jobs:
           docker tag ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }} \
                      ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
           docker push ${{ env.REGISTRY }}:${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
-
   # Summary job
   summary:
     runs-on: ubuntu-latest
@@ -132,15 +129,19 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ All minimal Docker images have been built and pushed to Aliyun Container Registry." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Available Minimal Images (Wine 11)" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-py" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Minimal Images (Official Precompiled)" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-stable" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-stable-py" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Available Minimal Images (Wine 10)" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-wine10" >> $GITHUB_STEP_SUMMARY
-          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-wine10-py" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Minimal Images (From Source)" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-10.0" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-10.0-py" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Naming Convention:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`wine_dev-stable\` - Official precompiled Wine (latest stable)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`wine_dev-<version>\` - Built from source (e.g., wine_dev-10.0)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Pull Example" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_dev-stable" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

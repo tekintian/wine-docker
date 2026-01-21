@@ -1,14 +1,13 @@
-# Minimal Wine Docker for Build/Dev Environment
-# This Dockerfile is optimized for build/packaging tasks
-# ================================================
+# Wine Source Build Dockerfile
+# This Dockerfile is for building Wine from source with specific version
+# =====================================================================
 
 ARG BASE_IMAGE=ubuntu:22.04
 FROM ${BASE_IMAGE} AS ubuntu-base
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG WINE_BRANCH=stable
-ARG WINE_VERSION=11.0.0.0~jammy-1
-ARG WINEARCH=win64
+ARG WINE_SOURCE_VERSION=wine-11.0
 ARG PYTHON_VERSION=3.11.9
 
 # China mirrors support
@@ -18,7 +17,7 @@ ARG USE_CN_MIRRORS=0
 RUN dpkg --add-architecture i386 && \
     mkdir -p /etc/apt/keyrings
 
-# Install Wine from WineHQ package (official stable versions only)
+# Install build dependencies
 RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         sed -i 's|archive.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list && \
         sed -i 's|security.ubuntu.com|mirrors.aliyun.com|g' /etc/apt/sources.list; \
@@ -36,16 +35,53 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         xz-utils \
         lsof \
         curl \
-        git && \
-    echo "Installing Wine from package: winehq-${WINE_BRANCH}" && \
-    wget -qO- https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key && \
-    echo "deb [arch=amd64,i386 signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/winehq.list && \
-    apt-get update && \
-    if [ -n "$WINE_VERSION" ]; then \
-        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}=${WINE_VERSION}; \
-    else \
-        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}; \
-    fi && \
+        git \
+        build-essential \
+        flex \
+        bison \
+        mingw-w64 \
+        libfaudio-dev \
+        libfontconfig1-dev \
+        libfreetype6-dev \
+        libglib2.0-dev \
+        libgphoto2-dev \
+        libgsm1-dev \
+        libkrb5-dev \
+        libmpg123-dev \
+        libopenal-dev \
+        libosmesa6-dev \
+        libpcap0.8-dev \
+        libpulse-dev \
+        libsane-dev \
+        libv4l-dev \
+        libx11-dev \
+        libxcomposite-dev \
+        libxcursor-dev \
+        libxext-dev \
+        libxi-dev \
+        libxinerama-dev \
+        libxrandr-dev \
+        libxrender-dev \
+        libxslt1-dev \
+        libxxf86vm-dev \
+        zlib1g-dev \
+        libldap2-dev && \
+    mkdir -p /tmp/wine-build && \
+    cd /tmp/wine-build && \
+    echo "Downloading Wine source: ${WINE_SOURCE_VERSION} (${WINE_BRANCH})" && \
+    wget -q https://dl.winehq.org/wine/source/${WINE_BRANCH}/${WINE_SOURCE_VERSION}.tar.xz && \
+    tar -xf ${WINE_SOURCE_VERSION}.tar.xz && \
+    cd ${WINE_SOURCE_VERSION} && \
+    mkdir -p build && \
+    cd build && \
+    echo "Configuring Wine..." && \
+    ../configure --enable-win64 && \
+    echo "Building Wine (this may take 30-60 minutes)..." && \
+    make -j$(nproc) && \
+    echo "Installing Wine..." && \
+    make install && \
+    cd /tmp && \
+    rm -rf /tmp/wine-build && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -77,8 +113,8 @@ ENV LANG=C.UTF-8
 ENV WINEPREFIX=/home/user/.wine
 
 # Metadata
-LABEL org.opencontainers.image.title="Minimal Wine for Build/Dev"
-LABEL org.opencontainers.image.description="Minimal Wine environment optimized for build/packaging tasks (PyInstaller, NSIS, etc.)"
+LABEL org.opencontainers.image.title="Wine from Source"
+LABEL org.opencontainers.image.description="Wine built from source for development and packaging tasks"
 LABEL org.opencontainers.image.version="1.0"
 LABEL maintainer="tekintian <tekintian@gmail.com>"
 
@@ -87,7 +123,7 @@ ENTRYPOINT [ "gosu", "user" ]
 CMD [ "bash" ]
 
 
-# Minimal Python variant
+# Python variant with Wine built from source
 FROM ubuntu-base AS python
 ARG PYTHON_VERSION=3.11.9
 ARG PYTHON_ARCH=-amd64

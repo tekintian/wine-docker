@@ -123,107 +123,115 @@ build-nvidia-win32-py311:
 		--load \
 		.
 
-# Wine 10 branch - Base images (using historical package)
+# Wine 10 branch - Build from source (use Dockerfile.source)
+# =========================================================
 .PHONY: build-ubuntu-wine10
 build-ubuntu-wine10:
-	docker buildx build --target ubuntu-base \
+	docker buildx build -f Dockerfile.source --target ubuntu-base \
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
 .PHONY: build-ubuntu-wine10-win32
 build-ubuntu-wine10-win32:
-	docker buildx build --target ubuntu-base \
+	docker buildx build -f Dockerfile.source --target ubuntu-base \
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
 .PHONY: build-nvidia-wine10
 build-nvidia-wine10:
-	docker buildx build --target ubuntu-base \
+	docker buildx build -f Dockerfile.source --target ubuntu-base \
 		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
 .PHONY: build-nvidia-wine10-win32
 build-nvidia-wine10-win32:
-	docker buildx build --target ubuntu-base \
+	docker buildx build -f Dockerfile.source --target ubuntu-base \
 		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINEARCH=win32 \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
-# Wine 10 branch - Python images (using historical package)
+# Wine 10 branch - Python images (build from source)
 .PHONY: build-ubuntu-wine10-py311
 build-ubuntu-wine10-py311:
-	docker buildx build --target python \
+	docker buildx build -f Dockerfile.source --target python \
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-py311 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
 .PHONY: build-ubuntu-wine10-win32-py311
 build-ubuntu-wine10-win32-py311:
-	docker buildx build --target python \
+	docker buildx build -f Dockerfile.source --target python \
 		-t $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_ubuntu-wine10-win32-py311 \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
 .PHONY: build-nvidia-wine10-py311
 build-nvidia-wine10-py311:
-	docker buildx build --target python \
+	docker buildx build -f Dockerfile.source --target python \
 		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-py311 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg PYTHON_VERSION=3.11.9 \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
 .PHONY: build-nvidia-wine10-win32-py311
 build-nvidia-wine10-win32-py311:
-	docker buildx build --target python \
+	docker buildx build -f Dockerfile.source --target python \
 		-t $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32-py311 \
-		--cache-from $(REGISTRY):$(IMAGE_NAME)_nvidia-wine10-win32-py311 \
 		$(BUILD_ARGS) \
 		--build-arg BASE_IMAGE=nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04 \
 		--build-arg WINEARCH=win32 \
 		--build-arg PYTHON_VERSION=3.11.9 \
 		--build-arg PYTHON_ARCH= \
+		--build-arg WINE_SOURCE_VERSION=wine-10.0 \
+		--build-arg WINE_BRANCH=stable \
 		--load \
 		.
 
-# Build from source - Base images
-# ===============================
+# Build from source - Base images (use Dockerfile.source)
+# ========================================================
 .PHONY: build-source build-source-py
 build-source:
-	docker buildx build --target ubuntu-base \
+	docker buildx build -f Dockerfile.source --target ubuntu-base \
 		-t $(REGISTRY):$(IMAGE_NAME)_source-$(WINE_SOURCE_VERSION) \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg BUILD_FROM_SOURCE=1 \
 		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
 		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
 		--load \
@@ -231,11 +239,10 @@ build-source:
 
 build-source-py: PYTHON_VERSION ?= 3.11.9
 build-source-py:
-	docker buildx build --target python \
+	docker buildx build -f Dockerfile.source --target python \
 		-t $(REGISTRY):$(IMAGE_NAME)_source-$(WINE_SOURCE_VERSION)-py$(PYTHON_VERSION) \
 		$(BUILD_ARGS) \
 		--build-arg USE_CN_MIRRORS=$(USE_CN_MIRRORS) \
-		--build-arg BUILD_FROM_SOURCE=1 \
 		--build-arg WINE_SOURCE_VERSION=$(WINE_SOURCE_VERSION) \
 		--build-arg WINE_BRANCH=$(WINE_BRANCH) \
 		--build-arg PYTHON_VERSION=$(PYTHON_VERSION) \
@@ -311,9 +318,9 @@ help:
 	@echo "  make build-nvidia      Build NVIDIA GPU enabled image"
 	@echo "  make build-nvidia-py311 Build NVIDIA image with Python 3.11"
 	@echo ""
-	@echo "Build Targets (Wine 10):"
-	@echo "  make build-ubuntu-wine10  Build wine-10 image"
-	@echo "  make build-nvidia-wine10  Build NVIDIA wine-10 image"
+	@echo "Build Targets (Wine 10 - From Source):"
+	@echo "  make build-ubuntu-wine10  Build wine-10 image (build from source)"
+	@echo "  make build-nvidia-wine10  Build NVIDIA wine-10 image (build from source)"
 	@echo ""
 	@echo "Build Targets (From Source):"
 	@echo "  make build-source          Build Wine from source"

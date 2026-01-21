@@ -64,10 +64,9 @@ make build-source-py WINE_SOURCE_VERSION=wine-10.0 WINE_BRANCH=stable PYTHON_VER
 ```bash
 # 构建基础版本
 docker buildx build \
-  -f Dockerfile.minimal \
+  -f Dockerfile.source \
   --target ubuntu-base \
   -t wine-source:wine-11.0 \
-  --build-arg BUILD_FROM_SOURCE=1 \
   --build-arg WINE_SOURCE_VERSION=wine-11.0 \
   --build-arg WINE_BRANCH=stable \
   --load \
@@ -75,10 +74,9 @@ docker buildx build \
 
 # 构建 Python 版本
 docker buildx build \
-  -f Dockerfile.minimal \
+  -f Dockerfile.source \
   --target python \
   -t wine-source:wine-11.0-py3.11.9 \
-  --build-arg BUILD_FROM_SOURCE=1 \
   --build-arg WINE_SOURCE_VERSION=wine-11.0 \
   --build-arg WINE_BRANCH=stable \
   --build-arg PYTHON_VERSION=3.11.9 \
@@ -147,5 +145,6 @@ curl -s https://dl.winehq.org/wine/source/ | grep -o 'wine-[0-9.]*' | sort -V
 ## 相关文件
 
 - `.github/workflows/build-source.yml` - GitHub Actions 配置
-- `Dockerfile.minimal` - Dockerfile 定义
+- `Dockerfile.source` - 源码编译专用 Dockerfile
+- `Dockerfile.minimal` - 官方预编译版本 Dockerfile
 - `Makefile` - 本地构建命令
