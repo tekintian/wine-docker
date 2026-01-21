@@ -28,16 +28,16 @@ jobs:
             target: ubuntu-base
             arch: win32
             tags: ubuntu-win32
-          - name: nvidia
-            target: ubuntu-base
-            arch: win64
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            tags: nvidia
-          - name: nvidia-win32
-            target: ubuntu-base
-            arch: win32
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            tags: nvidia-win32
+          # - name: nvidia
+          #   target: ubuntu-base
+          #   arch: win64
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   tags: nvidia
+          # - name: nvidia-win32
+          #   target: ubuntu-base
+          #   arch: win32
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   tags: nvidia-win32
           - name: ubuntu-py311
             target: python
             arch: win64
@@ -48,18 +48,18 @@ jobs:
             arch: win32
             python_version: 3.11.9
             tags: ubuntu-win32-py311
-          - name: nvidia-py311
-            target: python
-            arch: win64
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            python_version: 3.11.9
-            tags: nvidia-py311
-          - name: nvidia-win32-py311
-            target: python
-            arch: win32
-            base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-            python_version: 3.11.9
-            tags: nvidia-win32-py311
+          # - name: nvidia-py311
+          #   target: python
+          #   arch: win64
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   python_version: 3.11.9
+          #   tags: nvidia-py311
+          # - name: nvidia-win32-py311
+          #   target: python
+          #   arch: win32
+          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
+          #   python_version: 3.11.9
+          #   tags: nvidia-win32-py311
       fail-fast: false
 
     steps:

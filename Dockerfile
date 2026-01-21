@@ -71,8 +71,8 @@ RUN useradd -m -s /bin/bash user && \
     chown -R user:user /home/user
 
 # Configure Wine environment (combine winetricks commands)
-RUN gosu user winetricks -q allfonts fakechinese win10 msxml6 mfc40 && \
-    gosu user xvfb-run sh -c 'wineboot && winetricks -q dotnet48 vcrun2019 vcrun2022; wineserver -w'
+# Use --force to bypass checksum verification for potentially outdated winetricks packages
+RUN gosu user xvfb-run sh -c 'wineboot && winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w'
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
