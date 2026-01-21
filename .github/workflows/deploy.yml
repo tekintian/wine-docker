@@ -23,43 +23,43 @@ jobs:
           - name: latest
             target: ubuntu-base
             arch: win64
-            tags: latest ubuntu
+            make_target: build
+            push_tag: latest
           - name: ubuntu-win32
             target: ubuntu-base
             arch: win32
-            tags: ubuntu-win32
-          # - name: nvidia
-          #   target: ubuntu-base
-          #   arch: win64
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   tags: nvidia
-          # - name: nvidia-win32
-          #   target: ubuntu-base
-          #   arch: win32
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   tags: nvidia-win32
+            make_target: build-ubuntu-win32
+            push_tag: ubuntu-win32
           - name: ubuntu-py311
             target: python
             arch: win64
-            python_version: 3.11.9
-            tags: ubuntu-py311
+            make_target: build-ubuntu-py311
+            push_tag: ubuntu-py311
           - name: ubuntu-win32-py311
             target: python
             arch: win32
-            python_version: 3.11.9
-            tags: ubuntu-win32-py311
-          # - name: nvidia-py311
-          #   target: python
-          #   arch: win64
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   python_version: 3.11.9
-          #   tags: nvidia-py311
-          # - name: nvidia-win32-py311
-          #   target: python
-          #   arch: win32
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   python_version: 3.11.9
-          #   tags: nvidia-win32-py311
+            make_target: build-ubuntu-win32-py311
+            push_tag: ubuntu-win32-py311
+          - name: nvidia
+            target: ubuntu-base
+            arch: win64
+            make_target: build-nvidia
+            push_tag: nvidia
+          - name: nvidia-win32
+            target: ubuntu-base
+            arch: win32
+            make_target: build-nvidia-win32
+            push_tag: nvidia-win32
+          - name: nvidia-py311
+            target: python
+            arch: win64
+            make_target: build-nvidia-py311
+            push_tag: nvidia-py311
+          - name: nvidia-win32-py311
+            target: python
+            arch: win32
+            make_target: build-nvidia-win32-py311
+            push_tag: nvidia-win32-py311
       fail-fast: false
 
     steps:
@@ -78,22 +78,18 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }}
         run: |
-          if [ "${{ matrix.variant.base_image }}" != "" ]; then
-            make build-ubuntu BASE_IMAGE=${{ matrix.variant.base_image }}
-          else
-            make build-ubuntu
-          fi
+          make ${{ matrix.variant.make_target }}
 
-      - name: Push ${{ matrix.variant.tags }}
+      - name: Push ${{ matrix.variant.push_tag }}
         run: |
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}
 
       - name: Tag and push with release version
         if: github.event.release.tag_name != ''
         run: |
-          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest \
-                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-${{ github.event.release.tag_name }}
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-${{ github.event.release.tag_name }}
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }} \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
 
   # Build matrix for development branch
   build-devel:
@@ -104,51 +100,43 @@ jobs:
           - name: ubuntu-devel
             target: ubuntu-base
             arch: win64
-            wine_branch: devel
-            tags: ubuntu-devel
+            make_target: build-ubuntu-devel
+            push_tag: ubuntu-devel
           - name: ubuntu-devel-win32
             target: ubuntu-base
             arch: win32
-            wine_branch: devel
-            tags: ubuntu-devel-win32
-          # - name: nvidia-devel
-          #   target: ubuntu-base
-          #   arch: win64
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   wine_branch: devel
-          #   tags: nvidia-devel
-          # - name: nvidia-devel-win32
-          #   target: ubuntu-base
-          #   arch: win32
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   wine_branch: devel
-          #   tags: nvidia-devel-win32
+            make_target: build-ubuntu-devel-win32
+            push_tag: ubuntu-devel-win32
           - name: ubuntu-devel-py311
             target: python
             arch: win64
-            wine_branch: devel
-            python_version: 3.11.9
-            tags: ubuntu-devel-py311
+            make_target: build-ubuntu-devel-py311
+            push_tag: ubuntu-devel-py311
           - name: ubuntu-devel-win32-py311
             target: python
             arch: win32
-            wine_branch: devel
-            python_version: 3.11.9
-            tags: ubuntu-devel-win32-py311
-          # - name: nvidia-devel-py311
-          #   target: python
-          #   arch: win64
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   wine_branch: devel
-          #   python_version: 3.11.9
-          #   tags: nvidia-devel-py311
-          # - name: nvidia-devel-win32-py311
-          #   target: python
-          #   arch: win32
-          #   base_image: nvidia/opengl:1.0-glvnd-runtime-ubuntu22.04
-          #   wine_branch: devel
-          #   python_version: 3.11.9
-          #   tags: nvidia-devel-win32-py311
+            make_target: build-ubuntu-devel-win32-py311
+            push_tag: ubuntu-devel-win32-py311
+          - name: nvidia-devel
+            target: ubuntu-base
+            arch: win64
+            make_target: build-nvidia-devel
+            push_tag: nvidia-devel
+          - name: nvidia-devel-win32
+            target: ubuntu-base
+            arch: win32
+            make_target: build-nvidia-devel-win32
+            push_tag: nvidia-devel-win32
+          - name: nvidia-devel-py311
+            target: python
+            arch: win64
+            make_target: build-nvidia-devel-py311
+            push_tag: nvidia-devel-py311
+          - name: nvidia-devel-win32-py311
+            target: python
+            arch: win32
+            make_target: build-nvidia-devel-win32-py311
+            push_tag: nvidia-devel-win32-py311
       fail-fast: false
 
     steps:
@@ -167,18 +155,18 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }}
         run: |
-          make build-ubuntu-devel WINE_BRANCH=${{ matrix.variant.wine_branch }}
+          make ${{ matrix.variant.make_target }}
 
-      - name: Push ${{ matrix.variant.tags }}
+      - name: Push ${{ matrix.variant.push_tag }}
         run: |
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}
 
       - name: Tag and push with release version
         if: github.event.release.tag_name != ''
         run: |
-          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel \
-                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel-${{ github.event.release.tag_name }}
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_ubuntu-devel-${{ github.event.release.tag_name }}
+          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }} \
+                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}-${{ github.event.release.tag_name }}
 
   # Build with China mirrors (optional)
   build-cn:
@@ -188,12 +176,11 @@ jobs:
       matrix:
         variant:
           - name: latest-cn
-            target: ubuntu-base
-            tags: latest
+            make_target: build-cn
+            push_tag: latest-cn
           - name: ubuntu-py311-cn
-            target: python
-            python_version: 3.11.9
-            tags: ubuntu-py311
+            make_target: build-ubuntu-py311-cn
+            push_tag: ubuntu-py311-cn
       fail-fast: false
 
     steps:
@@ -212,13 +199,11 @@ jobs:
 
       - name: Build ${{ matrix.variant.name }} with China mirrors
         run: |
-          make build-cn
+          make ${{ matrix.variant.make_target }} USE_CN_MIRRORS=1
 
-      - name: Push ${{ matrix.variant.tags }}-cn
+      - name: Push ${{ matrix.variant.push_tag }}
         run: |
-          docker tag ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest \
-                     ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-cn
-          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_latest-cn
+          docker push ${{ env.REGISTRY }}:${{ env.IMAGE_NAME }}_${{ matrix.variant.push_tag }}
 
   # Summary job
   summary:
@@ -232,15 +217,25 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ All Docker images have been built and pushed to Aliyun Container Registry." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Available Images" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Images (Stable)" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_latest" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-win32" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-win32-py311" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-win32" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-win32-py311" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Available Images (Development)" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-win32" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_ubuntu-devel-win32-py311" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-win32" >> $GITHUB_STEP_SUMMARY
           echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-py311" >> $GITHUB_STEP_SUMMARY
+          echo "- registry.cn-hangzhou.aliyuncs.com/tekintian/dev:wine_nvidia-devel-win32-py311" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Pull Example" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
