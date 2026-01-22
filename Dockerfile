@@ -78,7 +78,7 @@ RUN useradd -m -s /bin/bash user && \
 
 # Configure Wine environment
 ENV DISPLAY=:99
-RUN gosu user wine wineboot -i && \
+RUN gosu user xvfb-run env WINEDEBUG=-all wine wineboot --init && \
     gosu user xvfb-run sh -c 'WINEDEBUG=-all winetricks -q --force fakechinese win10 msxml6 mfc40 dotnet48 vcrun2019 vcrun2022; wineserver -w' && \
     chown -R user:user /home/user/.wine
 
@@ -122,7 +122,7 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
     fi && \
     wget -q --show-progress ${PYTHON_MIRROR}/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}${PYTHON_ARCH}.exe -O /tmp/install-python.exe && \
     gosu user xvfb-run \
-        sh -c 'WINEDEBUG=-all wineboot && WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=1 TargetDir=C:\\Python Include_test=0; wineserver -w' && \
+        sh -c 'WINEDEBUG=-all wineboot --init && WINEDEBUG=-all wine /tmp/install-python.exe /quiet PrependPath=1 Include_doc=0 Include_tcltk=1 TargetDir=C:\\Python Include_test=0; wineserver -w' && \
     chown -R user:user /home/user/.wine && \
     rm /tmp/install-python.exe
 

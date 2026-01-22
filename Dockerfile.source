@@ -147,7 +147,8 @@ RUN apt-get update && \
 # Minimal Wine config (no winetricks, no extra components)
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
-RUN xvfb-run -a gosu user env WINEDEBUG=-all wine winecfg && \
+RUN xvfb-run -a gosu user env WINEDEBUG=-all wine wineboot --init && \
+    xvfb-run -a gosu user env WINEDEBUG=-all wine winecfg && \
     xvfb-run -a gosu user wineserver -w && \
     # Ensure .wine directory is owned by user
     chown -R user:user /home/user/.wine
