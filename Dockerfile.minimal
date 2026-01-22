@@ -37,17 +37,18 @@ RUN if [ "$USE_CN_MIRRORS" = "1" ]; then \
         lsof \
         curl \
         git \
-        xvfb && \
+        xvfb \
+        winbind && \
     echo "Installing Wine from package: winehq-${WINE_BRANCH}" && \
     wget -qO- https://dl.winehq.org/wine-builds/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key && \
     echo "deb [arch=amd64,i386 signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/winehq.list && \
     apt-get update && \
+    # Install winehq package and all recommended dependencies
     if [ -n "$WINE_VERSION" ]; then \
-        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}=${WINE_VERSION}; \
+        apt-get install -y winehq-${WINE_BRANCH}=${WINE_VERSION}; \
     else \
-        apt-get install -y --no-install-recommends winehq-${WINE_BRANCH}; \
+        apt-get install -y winehq-${WINE_BRANCH}; \
     fi && \
-    apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -69,6 +70,9 @@ RUN useradd -m -s /bin/bash -u 1000 user && \
 # Minimal Wine config (no winetricks, no extra components)
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
+ENV WINEARCH=win64
+ENV WINEPREFIX=/home/user/.wine
+RUN gosu user xvfb-run env WINE
 RUN gosu user xvfb-run env WINEDEBUG=-all wine wineboot --init && \
     gosu user xvfb-run env WINEDEBUG=-all wine winecfg && \
     gosu user wineserver -w && \
